@@ -1,0 +1,294 @@
+{
+  "measuredAt": "2026-09-09T16:50:30.579Z",
+  "dataset": "Curated official INIU conditions plus synthetic operator cases, CONTROLLED_DEMO_FIXTURE",
+  "combinations": 45,
+  "correct": 45,
+  "affectedPrecision": 1,
+  "affectedRecall": 1,
+  "falsePositiveCount": 0,
+  "falseNegativeCount": 0,
+  "needsReviewRate": 0.37777777777777777,
+  "averageMatchingRuntimeMs": 0.034794444444444315,
+  "totalMatchingRuntimeMs": 1.5657499999999942,
+  "fixtureExtractionSchemaValidity": {
+    "tested": 1,
+    "valid": 1
+  },
+  "liveExtractionValidity": null,
+  "anakinRequests": 0,
+  "cacheHitRate": null,
+  "estimatedCredits": null,
+  "limitations": "Matcher-only controlled evaluation. Not live extraction accuracy, production reliability, recall coverage, or independent user validation.",
+  "rows": [
+    {
+      "id": "INIU-01",
+      "description": "exact G",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-02",
+      "description": "exact H",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-03",
+      "description": "exact I blue",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-04",
+      "description": "exact L",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-05",
+      "description": "near serial",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-06",
+      "description": "missing serial",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-07",
+      "description": "trim case serial",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-08",
+      "description": "lookalike serial",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-09",
+      "description": "model formatting",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-10",
+      "description": "unrelated model",
+      "expected": "no_relevant_notice_found",
+      "actual": "no_relevant_notice_found"
+    },
+    {
+      "id": "INIU-11",
+      "description": "red",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-12",
+      "description": "missing color",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-13",
+      "description": "Woot exclusion",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-14",
+      "description": "wrong channel",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-15",
+      "description": "wrong market",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-16",
+      "description": "missing market",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-17",
+      "description": "before period",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-18",
+      "description": "after period",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-19",
+      "description": "first month",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-20",
+      "description": "last month",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "INIU-21",
+      "description": "year ambiguous",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-22",
+      "description": "missing purchase",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-23",
+      "description": "mismatch beats missing",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "INIU-24",
+      "description": "unknown seller exclusion",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-25",
+      "description": "invalid date",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-26",
+      "description": "serial internal whitespace",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-27",
+      "description": "missing brand",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "INIU-28",
+      "description": "missing channel",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "CONFLICT-01",
+      "description": "Conflict overrides inclusion",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "CONFLICT-02",
+      "description": "Conflict overrides exclusion",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "DISCOVERY-01",
+      "description": "Completed no-notice search",
+      "expected": "no_relevant_notice_found",
+      "actual": "no_relevant_notice_found"
+    },
+    {
+      "id": "DISCOVERY-02",
+      "description": "Failed investigation",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "RANGE-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "RANGE-02",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "RANGE-03",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "RANGE-04",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "ALL-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "ANY-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "ANY-02",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "ANY-03",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "excluded_by_notice",
+      "actual": "excluded_by_notice"
+    },
+    {
+      "id": "PREFIX-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "SUFFIX-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "NOTIN-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    },
+    {
+      "id": "BOOL-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "affected",
+      "actual": "affected"
+    },
+    {
+      "id": "UNSUPPORTED-01",
+      "description": "CONTROLLED synthetic operator case",
+      "expected": "needs_review",
+      "actual": "needs_review"
+    }
+  ]
+}

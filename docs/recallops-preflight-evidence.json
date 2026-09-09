@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "recallops-preflight/v1",
+  "generatedAt": "2026-09-09T10:28:48.590Z",
+  "applicationIntegrationVerified": false,
+  "probes": [
+    {
+      "name": "recall_search_probe",
+      "transport": "CONNECTED_ANAKIN_MCP",
+      "requestedAt": "2026-09-09T10:27:33.057Z",
+      "elapsedMs": 1001,
+      "isError": false,
+      "cached": null,
+      "providerDurationMs": null,
+      "resultCount": 5,
+      "sourceUrl": null,
+      "attribution": "LIVE_ANAKIN",
+      "scope": "Preflight via connected tool, not repository server-side integration",
+      "providerJobId": null
+    },
+    {
+      "name": "recall_scrape_probe",
+      "transport": "CONNECTED_ANAKIN_MCP",
+      "requestedAt": "2026-09-09T10:27:33.057Z",
+      "elapsedMs": 3400,
+      "isError": false,
+      "cached": false,
+      "providerDurationMs": 1108,
+      "resultCount": null,
+      "sourceUrl": "https://www.cpsc.gov/Recalls/2026/INIU-Recalls-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon",
+      "attribution": "LIVE_ANAKIN",
+      "scope": "Preflight via connected tool, not repository server-side integration",
+      "providerJobId": null
+    },
+    {
+      "name": "manufacturer_scrape_probe",
+      "transport": "CONNECTED_ANAKIN_MCP",
+      "requestedAt": "2026-09-09T10:27:48.580Z",
+      "elapsedMs": 6521,
+      "isError": false,
+      "cached": false,
+      "providerDurationMs": 2648,
+      "resultCount": null,
+      "sourceUrl": "https://iniushop.com/pages/recall-b41",
+      "attribution": "LIVE_ANAKIN",
+      "scope": "Preflight via connected tool, not repository server-side integration",
+      "providerJobId": null
+    }
+  ],
+  "searchResults": [
+    {
+      "url": "https://www.cpsc.gov/Recalls/2026/INIU-Recalls-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon",
+      "title": "INIU Recalls Power Banks Due to Fire and Burn Hazards; Sold on Amazon | CPSC.gov"
+    },
+    {
+      "url": "https://www.usatoday.com/recalls/consumer-products/CPSC-10516",
+      "title": "INIU Recalls Power Banks Due to Fire and Burn Hazards"
+    },
+    {
+      "url": "https://www.prnewswire.com/news-releases/cpsc-posts-product-recalls-and-product-safety-warnings-to-its-web-site-302822086.html",
+      "title": "CPSC Posts Product Recalls and Product Safety Warnings to its Web Site"
+    },
+    {
+      "url": "https://www.cpsc.gov/Recalls/2026/Shenzhen-Baihang-Recalls-VEEKTOMX-Mini-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon",
+      "title": "Shenzhen Baihang Recalls VEEKTOMX Mini Power Banks, Due to Fire and Burn Hazards; Sold on Amazon | CPSC.gov"
+    },
+    {
+      "url": "https://opendata.ul.org/search/incident/ppe_cpsc_recall/10516",
+      "title": "Open Data for Safety Incidents | UL Standards & Engagement"
+    }
+  ],
+  "scope": "Recorded connected-tool preflight only. This is not an application REST integration run or runtime fixture."
+}
