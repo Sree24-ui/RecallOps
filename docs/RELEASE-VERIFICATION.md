@@ -1,87 +1,78 @@
 # RecallOps release verification
 
-Verified locally on September 9, 2026. Repository: [Sree24-ui/RecallOps](https://github.com/Sree24-ui/RecallOps), private. Owner and sole authored commit identity: `Sree24-ui <245315421+Sree24-ui@users.noreply.github.com>`.
+Verified September 11, 2026. Private repository: [Sree24-ui/RecallOps](https://github.com/Sree24-ui/RecallOps). Owner and authored commit identity: `Sree24-ui <245315421+Sree24-ui@users.noreply.github.com>`.
 
 ## Verdict
 
-**NOT_READY for the full live hackathon release.** The local application and controlled Judge workflow are implemented and verified. A server-side Anakin API key is still missing, so live application Search/Scraper extraction, Wire execution and signed monitoring delivery cannot yet be verified. No public deployment or submission has occurred.
+**READY_WITH_LIMITATIONS for the local hackathon demonstration.** The controlled Judge workflow and a real four-unit Search/Scraper investigation are verified. The compiled app displays live evidence, persists the affected unit's quarantine and excludes it from sale exports. Actual Wire enrichment, paused monitor creation, queued Run now and independent source reassessment are recorded. Provider monitor completion and external signed webhook delivery remain unverified. No public deployment or submission occurred.
 
-## Implemented
+## Implementation and changed files
 
-The new workspace contains an evidence-first React/Vinext interface with inventory and CSV review, investigation progress, four exact assessment states, field-by-field case evidence, source versions, persisted quarantine, staff tasks, acknowledgment, HTML remedy packets, hold/sale/customer CSVs, monitoring history, integration health and local settings.
+The workspace contains inventory/manual/CSV import, scoped investigation, four exact assessment states, evidence tables, source versions, persisted cases/quarantine/tasks, acknowledgment, HTML action packets, CSV/JSON exports, monitoring history, integration health and local settings. D1/SQLite migrations create 19 tables with immutable audit events. The 24-unit Judge fixture runs through the actual matcher and database.
 
-D1/SQLite migrations create the required records and enforce immutable audit events. The matching engine evaluates typed inclusion/exclusion trees deterministically. Server-side Anakin adapters implement Search, async Scraper extraction, Amazon Wire read enrichment, paused monitor creation/run/history and raw-body signed webhook processing. Judge Mode runs 24 clearly labeled samples through real matching and persistence; a synthetic A/B notice demonstrates reassessment.
+This update adds `lib/core/extraction.ts` for the finite provider schema and observed success/data envelope. `lib/core/rules.ts` validates original source spans, preserves serial/date precision, rejects blank or combined marketplace/country evidence and prevents model/serial requirements from being bypassed by alternatives. `lib/server/anakin.ts` handles Workers-compatible redirect rejection, provider retry delays, failure IDs and credit telemetry. `lib/server/workflow.ts` and `app/api/workspace/route.ts` support scoped scans, preserve evidence on partial failure and distinguish queued monitor requests from independent reassessment. `app/page.tsx` exposes these behaviors. Corresponding core, extraction, adapter, workflow and browser regressions were added under `tests/`.
 
-The final review added regressions for serial truncation, fabricated dates, exclusion-tree conflicts, incomplete discovery, and repeated monitor refreshes that could otherwise erase a source conflict. These conditions now reject extraction or require review. Quarantine is never automatically released.
+`scripts/clean-build-secrets.mjs` runs after the build to remove local environment files copied by the Cloudflare preview plugin. Runtime secrets are loaded explicitly from the ignored root file.
 
-## Files
-
-| Area | Main files |
-| --- | --- |
-| Workspace and setup | `RecallOps.code-workspace`, `package.json`, lockfile, `.env.example`, `wrangler.jsonc`, `vite.config.ts` |
-| User interface | `app/page.tsx`, `app/globals.css`, `app/layout.tsx` |
-| Deterministic engine | `lib/core/rules.ts`, `csv.ts`, `enrichment.ts`, `limits.ts`, `text.ts` |
-| Provider and workflow | `lib/server/anakin.ts`, `workflow.ts`, `store.ts`, `security.ts`, `api.ts`, `events.ts` |
-| API and exports | `app/api/workspace/route.ts`, `app/api/webhook/route.ts`, `app/api/export/route.ts` |
-| Persistence | `db/schema.ts`, `drizzle/0000_condemned_gauntlet.sql`, Drizzle metadata |
-| Samples and evaluation | `fixtures/`, `public/sample-inventory.csv`, `scripts/` |
-| Verification | `tests/`, `playwright.config.ts`, `docs/evaluation.json`, `docs/dependency-audit.json`, `docs/screenshots/` |
-| Documentation | `README.md`, `ARCHITECTURE.md`, `DEMO.md`, `SECURITY.md`, `SUBMISSION.md`, `docs/` |
-
-This is a new repository: no existing RecallGuard source was supplied. Starter UI primitives are included as dependencies/source, not represented as separately authored contributor commits.
+Documentation updates cover README, architecture, security, demo, submission draft, contract/deployment notes and measured reports. New sample-only screenshots show the live case, integration health and action packet. This is a new repository; no earlier RecallGuard source was supplied.
 
 ## Commands and results
 
-| Command / check | Observed result |
+| Check | Observed result |
 | --- | --- |
-| `npm ci` / dependency installation and lock resolution | Dependencies installed and version lock committed |
-| `npm run db:generate` | Schema generation succeeded; final schema has no pending generated changes |
-| `npm run db:migrate` | Local D1 migration applied successfully |
-| `RECALLOPS_URL=http://localhost:3001 npm run seed` / Judge seed | Reproducible sample workflow persisted; unchanged imports are idempotent |
-| `npm run lint` | Passed for app, server, scripts and tests |
-| `npm run typecheck` | Passed |
-| `npm test` | **82 passed, 1 skipped, 0 failed** (83 total) |
-| `npm run evaluate` | **45/45** controlled labeled combinations matched |
-| `npm run build` | Production build passed; Vinext emits a non-failing static route-classification warning |
-| `npm start -- --port 3001` | Built worker served successfully using the migrated local persistent database |
-| `npm run test:e2e` against built worker | **4 passed**; final run duration recorded below |
-| `npm audit --json` | **0 known vulnerabilities** across all severity levels |
-| Screenshot inspection | Actual desktop case, mobile Judge entry and HTML packet inspected |
+| `npm ci` | Clean install and lockfile verified in initial setup |
+| `npm run db:migrate` | Local migration passed; repeated in a fresh isolated test database for final browser checks |
+| `npm run typecheck` / `npm run lint` | Passed |
+| `npm test` | **161 passed, 1 skipped, 0 failed**; skipped test requires explicit live flag |
+| Gated live Search test | Passed with local server-only key on September 10 |
+| `npm run evaluate` | **45/45** controlled combinations matched on September 11 |
+| `npm run build` | Passed; non-failing Vinext static route-classification warning |
+| `npm start -- --port 3001 --env-file <absolute-repository-path>/.dev.vars` | Compiled worker served the existing persistent workspace with key configured |
+| `RECALLOPS_URL=http://localhost:3002 npm run test:e2e` | **5 passed in 5.7 seconds** against compiled worker and a fresh isolated database |
+| Compiled live browser check | All four live outcomes, packet, hold/sale exports and zero browser errors verified |
+| `npm audit --json` | **0 known vulnerabilities**, recorded September 10 |
+| Visual inspection | Live desktop case, health and printable HTML packet inspected; controlled mobile screenshot retained |
 
-Tests cover normalization, rule logic, date/serial evidence, missing/conflicting facts, quarantine/export filtering, CSV bounds/formulas, URL restrictions, prompt injection, redaction, source/audit persistence, event replay, adapter polling/retry/outage behavior, and body-size limits. Browser tests exercise Judge cases, acknowledgment, downloads, controlled change, integration health, CSV import, mobile navigation and invalid API/webhook requests.
+Browser tests cover Judge cases, acknowledgment, exports, controlled A/B reassessment, CSV import, mobile navigation, malformed requests and a mocked scoped-scan submission. The mocked selector check does not count as a live provider call. Lint excludes unmodified starter UI primitives and the starter mobile hook; TypeScript checks them.
 
-Lint excludes unmodified vendored UI primitives and the generated mobile hook because of starter-specific rule errors. TypeScript checks them. Live-provider contract responses in adapter tests are synthetic fixtures following the researched API documentation.
-
-## Measured evaluation
-
-See [EVALUATION.md](EVALUATION.md) and [the complete measured data](evaluation.json). Forty-five controlled combinations produced affected precision 1.0, recall 1.0, zero false positives and zero false negatives. The needs-review rate was 17/45 (37.78%). Mean matcher runtime was approximately 0.0348 ms in the recorded run. One curated rule extraction passed schema/grounding checks.
-
-These are controlled matcher results, not live extraction accuracy, real-world recall coverage, business validation or production reliability. Evaluation used zero Anakin calls; cache hit rate and credit consumption were not measured.
+The [evaluation](EVALUATION.md) measures controlled matcher behavior: affected precision/recall 1.0, zero false positives/negatives, 17/45 needs-review cases, mean matching time about 0.0412 ms. It used no provider calls and does not establish live extraction accuracy or real-world recall coverage.
 
 ## Live Anakin evidence
 
-[Recorded preflight evidence](recallops-preflight-evidence.json) captures three successful connected-tool calls: one Search and fresh CPSC and INIU URL scrapes on September 9, 2026. The source URLs, times and available provider timings are preserved. No job IDs or credit values were invented when absent.
+The [machine-readable report](live-verification.json) contains exact timestamps, provider IDs, requests, sample outcomes and limits. These are application REST calls, separate from the [September 9 connected-tool preflight](recallops-preflight-evidence.json).
 
-Those calls used the connected Anakin tool, not this application's REST adapter. The UI correctly reports the missing application key; Judge Mode is labeled `CONTROLLED_DEMO_FIXTURE` and creates no provider-success rows. Wire catalog discovery identified an actual read action, but no live Wire product action or monitor was executed.
+The final investigation completed at `2026-09-11T03:51:04.963Z`. Search ID `search_09505b147d8feaf184c8ee08a1f10b57` succeeded. Manufacturer job `936dddde-eade-400e-8fb8-0eddcf12a2bd` and CPSC job `be8164fa-29e4-43c2-984e-7810e1cc9e3f` both returned validated, uncached extraction. The investigation used 13 HTTP requests, including polling; Search/Scraper credit totals were not returned.
 
-## Remaining credentials and manual steps
+| Sample | Final live outcome | Hold |
+| --- | --- | --- |
+| INIU-001, serial 000G21 | affected | Persisted |
+| INIU-002, serial 000J21 | excluded_by_notice | None |
+| INIU-003, serial missing | needs_review | None |
+| INIU-004, original seller Woot | excluded_by_notice | None |
 
-1. In the repository run `cp .env.example .dev.vars`. Set `ANAKIN_API_KEY` locally in `.dev.vars`, keep it private, and restart the server.
-2. Run Investigation, then inspect Anakin health and source evidence for real successful Search/Scraper calls. Do not treat key configuration alone as success. Run the gated live test with `ANAKIN_API_KEY` securely set in the process environment and `RUN_LIVE_ANAKIN=1 npm run test:live`.
-3. Verify one actual Wire enrichment. Live monitoring delivery also needs an authorized HTTPS deployment, `PUBLIC_BASE_URL`, `OPERATOR_TOKEN`, and the provider-generated per-monitor signing secret. Creating a real monitor and Run now may consume credits; recurring monitors start paused.
-4. GitHub Actions is provided as [a template](github-checks.yml). The current sign-in has repository permission but lacks `workflow` scope; [activation](DEPLOYMENT.md#github-checks) requires the owner's interactive authorization. No CI run is claimed.
+Both official sources remain preserved. A narrow, audited comparison permits the linked manufacturer rule when it contains every identical regulator condition; the grounded subject brand already requires identical brand equality. Manufacturer conditions and exclusions remain intact. Other differences, unsupported alternatives and partial retrievals require review. No affected result is hard-coded.
 
-Current scope is CPSC/INIU, at most eight product groups per live investigation, a single local operator and bounded best-effort background event processing. Production authentication, tenant isolation and a durable queue remain necessary before public business use. Source semantic completeness cannot be proven by exact-excerpt checks; uncertain formats, boolean extraction and differing source logic are conservative review cases. HTML packets are provided instead of unverified PDF generation. No automatic external claim, message, disposal, payment or submission is performed.
+Wire job `38120d23-dad5-4299-b2b3-de68e90869d5` ran `am_product_details` on a separate related INIU 20,000mAh listing for `WIRE-DEMO-001`, contributing identifier, title, brand and product URL, with one reported credit. It returned no physical model or serial. The retired BI-B41 candidate listing returned a visible 404; this distinct listing is not used as proof of BI-B41 identity.
 
-## Exact Judge steps
+Actual monitor `7783140c-3036-4b76-8e04-2ee488221eff` remains paused. Run now returned queued job `ce41b270-1370-45c8-b64c-2d0c04822dbe`. A separately attributed source scrape reassessed five relevant sample records. A subsequent provider state read had no last-checked timestamp and no changes; completion and external delivery are not claimed.
 
-1. Start the app using README setup and open `http://localhost:3001` (or the printed local URL).
-2. Click **Run RecallOps Judge Demo**. Inspect **INIU-001**: affected, seven resolved fields and a persisted quarantine.
-3. Open Inventory and inspect **INIU-002** (excluded serial), **INIU-003** (missing serial, needs review), and **INIU-004** (Woot exclusion).
-4. Download **Action packet**. Open **Quarantine & actions** and download the hold list. Acknowledgment does not put the quarantined unit into the sale export.
-5. Open **Monitoring**, run **controlled change A → B**, and inspect **MON-001** changing from excluded to needs review with its source snapshots and audit event.
-6. Open **Anakin health** to see the actual integration state and the distinction between controlled evidence and live provider execution.
+Live QA found and corrected schema incompatibility, combined retailer/country operands and incomplete alternative branches. Failed attempts remain in the audit/verification history; only the final outcomes above are the validated result. Extraction can vary, and exact excerpts cannot prove all source clauses were understood.
 
-The automated Judge workflow completed in approximately 1.5 seconds, with all four production browser tests completing in 3.7 seconds in the recorded run. This demonstrates application execution time, not an independently measured human presentation time. The six-step script is designed for a presentation under three minutes.
+## Remaining manual steps and limits
 
-Screenshots contain only sample inventory. The local test database also contains one explicitly named E2E import sample; a fresh Judge seed has 24 units. Runtime database files, keys, build outputs, test traces and dependencies are ignored by Git.
+The local key is configured in ignored `.dev.vars` with permission mode 600. It is excluded from Git, reports, screenshots and packaged build output. A final byte-level scan checks indexed files and compiled assets without displaying the key. Another clone needs its own local key using README setup.
+
+External signed monitoring delivery needs separately authorized HTTPS hosting, `PUBLIC_BASE_URL`, `OPERATOR_TOKEN` and the provider's monitor-specific secret. Recurring schedules remain paused. Production authentication, tenant isolation and a durable queue are not implemented. Source scope is CPSC/INIU; live runs process at most eight product groups, with explicit group selection available. Packets are HTML, not PDF.
+
+GitHub Actions remains a [template](github-checks.yml): the current CLI sign-in lacks `workflow` scope. The owner must grant that scope interactively before activating it as described in [deployment notes](DEPLOYMENT.md#github-checks). No CI run is claimed. No claim, customer message, disposal confirmation, payment or hackathon form was submitted.
+
+## Exact Judge demonstration
+
+1. Start the app using README setup, open its local URL and click **Run RecallOps Judge Demo**.
+2. Inspect **INIU-001**: affected, seven controlled criteria resolved, quarantine persisted.
+3. Open Inventory and inspect **INIU-002**, **INIU-003** and **INIU-004** for excluded serial, missing-serial review and Woot exclusion.
+4. Download **Action packet** and the Quarantine **hold list**. Acknowledgment never releases the hold or admits INIU-001 to the sale export.
+5. In Monitoring run **controlled change A → B**; inspect MON-001 changing from excluded to needs review with snapshots and audit history.
+6. Open **Anakin health** to inspect actual calls. Judge Mode adds no provider-success rows. To repeat live verification, select the four-unit INIU/BI-B41 group in Investigation; this consumes real provider requests.
+
+The script is designed for under three minutes; browser automation measures application execution, not an independent human presentation. Running Judge again replaces the latest sample assessments with clearly labeled controlled results. The current main local workspace retains the successful live assessments; final regression tests used a separate database. Screenshots contain sample inventory only.

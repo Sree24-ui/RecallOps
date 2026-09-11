@@ -28,7 +28,7 @@ export const escapeHtml = (s: unknown) =>
   );
 export const redact = (s: string) =>
   s
-    .replace(/(?:sk-|gh[opusr]_|anakin[_-])[A-Za-z0-9_-]+/gi, '[REDACTED]')
+    .replace(/(?:sk-|gh[opusr]_|anakin[_-]|ask_)[A-Za-z0-9_-]+/gi, '[REDACTED]')
     .slice(0, 500);
 export async function sha256(s: string) {
   return [

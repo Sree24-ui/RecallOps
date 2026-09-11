@@ -6,9 +6,9 @@ RecallOps helps small US electronics resellers, refurbishers, repair shops, char
 
 Public recall feeds identify candidates. Manufacturer notices add eligibility and remedy details that a feed may omit. RecallOps preserves this evidence, evaluates structured rules deterministically, creates cases and staff tasks, and quarantines affected inventory internally.
 
-**Current release:** functional local hackathon application with a verified controlled demo. Server-side Anakin adapters are implemented and contract-tested. Live application execution requires an Anakin key and remains unverified. See [release verification](docs/RELEASE-VERIFICATION.md) and [limitations](#limitations).
+**Current release:** functional local hackathon application with a verified controlled demo and real server-side Anakin Search, Scraper, Wire and paused-monitor calls. Signed external webhook delivery and public deployment remain unverified. See [release verification](docs/RELEASE-VERIFICATION.md) and [limitations](#limitations).
 
-![Verified controlled assessment screen](docs/screenshots/assessment-desktop.png)
+![Verified live assessment screen](docs/screenshots/live-assessment-desktop.png)
 
 ## Quick start
 
@@ -52,12 +52,12 @@ All provider credentials and calls stay on the server. The application does not 
 
 | Product | App responsibility | Current verification |
 | --- | --- | --- |
-| Search | Discover relevant official URLs from product identity | REST contract tests; live app call needs key |
-| URL Scraper | Preserve markdown and extract schema-bound recall rules through an async job | Mocked submit/poll and evidence-grounding tests; live app extraction not verified |
-| Wire | Discover Amazon `am_product_details` as a read action, retrieve listing data, record supported returned fields and their paths | Contract tests; live output mapping not yet verified |
-| Monitoring | Create paused monitors, show real IDs/state, run checks, validate signed events, preserve versions and rerun matching | Contract/security tests plus controlled A/B path; live monitor not created |
+| Search | Discover relevant official URLs from product identity | Real application Search succeeded; provider IDs recorded |
+| URL Scraper | Preserve markdown and extract schema-bound recall rules through an async job | Real async retrieval and structured extraction succeeded for CPSC and INIU; local schema and grounding checks apply |
+| Wire | Discover Amazon `am_product_details` as a read action, retrieve listing data, record supported returned fields and their paths | Real Amazon action enriched a separately identified sample with four returned fields; no serial inferred |
+| Monitoring | Create paused monitors, show real IDs/state, run checks, validate signed events, preserve versions and rerun matching | Actual paused monitor and queued Run now verified; independent source reassessment succeeded; signed external delivery unverified |
 
-Three successful connected Anakin calls were captured during initial research: one Search and fresh regulator/manufacturer scrapes. This is evidence of connected-tool access, **not** successful execution by this application's REST adapter. Details are in [docs/ANAKIN-CONTRACT-NOTES.md](docs/ANAKIN-CONTRACT-NOTES.md).
+September 10–11 application REST verification is recorded in [live verification](docs/live-verification.json). Earlier September 9 connected-tool preflight is kept separately. Details of the live response formats and conservative validation are in [docs/ANAKIN-CONTRACT-NOTES.md](docs/ANAKIN-CONTRACT-NOTES.md).
 
 ### Configure live execution
 
@@ -78,10 +78,10 @@ Open **Investigation** and run a live investigation, then **Anakin health**. A s
 The gated test reads credentials from environment variables without printing them:
 
 ```sh
-RUN_LIVE_ANAKIN=1 npm run test:live
+RUN_LIVE_ANAKIN=1 node --env-file=.dev.vars --import tsx --test tests/live.test.ts
 ```
 
-Set `ANAKIN_API_KEY` securely in that process environment first; `.dev.vars` is loaded by the app runtime, not automatically by the Node test runner.
+This command loads the ignored local `.dev.vars` file into the test process without putting the key in command-line arguments.
 
 ## Matching and actions
 
@@ -92,7 +92,7 @@ The only assessment states are:
 - `needs_review`: missing/unsupported facts, incomplete investigation or conflicting/ambiguous evidence.
 - `no_relevant_notice_found`: no applicable notice in the declared completed scope. **This never means safe.**
 
-The LLM extracts data only. TypeScript evaluates the condition tree and generates the explanation from the evaluation trace. Date ranges preserve day/month precision; serials retain leading zeros and meaningful characters. Source differences that cannot be reconciled conservatively go to review.
+The LLM extracts data only. TypeScript evaluates the condition tree and generates the explanation from the evaluation trace. Date ranges preserve day/month precision; serials retain leading zeros and meaningful characters. Source differences that cannot be reconciled conservatively go to review. One narrowly scoped reconciliation accepts the linked official INIU manufacturer rule only when it contains every identical CPSC inclusion predicate, preserves all manufacturer exclusions, and has no unresolved criteria; other differing logic requires review.
 
 Affected assessments automatically create internal quarantine records. Reassessment and acknowledgment never silently release a hold. Approved-for-sale CSV exports require a non-quarantined, acknowledged record whose latest assessment is excluded or no-notice. This export is an operator workflow filter, not regulatory approval.
 
@@ -128,10 +128,10 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), and [deploym
 - No existing RecallGuard source was supplied; this is a new implementation, with no claim of migrating a previous prototype.
 - The live source allowlist currently covers CPSC and INIU. A general CPSC data-feed importer and additional manufacturer catalogs are not implemented.
 - Judge Mode is controlled replay; unrelated samples are checked only against the demo notices. Controlled runtime data never counts as a live Anakin success.
-- Live extraction, Wire results, signed webhook delivery and production deployment have not been verified. Provider contracts can evolve; see the dated research notes.
+- Successful live extraction and Wire calls establish observed compatibility, not extraction accuracy across arbitrary notices. Signed external webhook delivery, completed provider monitor checks and production deployment remain unverified; Run now is reported as queued until provider evidence confirms completion.
 - Extracted identifier operands must match complete source tokens; dates must be supported by exact ISO or recognized English month/day evidence. Unsupported date formats and natural-language boolean conditions require review.
 - Exact quotations establish traceability, not semantic truth. The current extraction checks cannot prove that an LLM found every relevant clause. Review the source and rule before relying on a business decision; multi-source differences are handled conservatively.
-- Live requests process at most eight product groups. Longer investigations and a production durable job queue need additional work. Monitors start paused to avoid unrequested recurring consumption; activate schedules in Anakin after reviewing cost and configuration.
+- Live requests process at most eight product groups per run; the Investigation selector can target another group explicitly. Longer investigations and a production durable job queue need additional work. Monitors start paused to avoid unrequested recurring consumption; activate schedules in Anakin after reviewing cost and configuration.
 - Webhooks persist events before background processing. Failed jobs can be retried in Monitoring, with three attempts. A host termination during processing can require operator recovery; this is not a production queue guarantee.
 - Local single-operator mode only. The remote bearer-token gate is not multi-user authentication or tenant isolation. The server should remain local until deployment hardening is completed.
 - No automatic quarantine release, automatic external claims, customer messaging or legal/compliance certification.

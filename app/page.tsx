@@ -119,6 +119,8 @@ type Monitor = {
   label: SourceLabel;
   state: unknown;
   lastCheckedAt?: string;
+  run?: { jobId: string; status: string; requestedAt: string };
+  independentReassessment?: { completedAt: string; assessed: number };
   version?: string;
 };
 type Data = {
@@ -267,6 +269,7 @@ export default function Page() {
     [message, setMessage] = useState(''),
     [search, setSearch] = useState(''),
     [filter, setFilter] = useState('all'),
+    [investigationGroup, setInvestigationGroup] = useState('all'),
     [csv, setCsv] = useState(''),
     [preview, setPreview] = useState<Inventory[] | null>(null),
     [asin, setAsin] = useState(''),
@@ -329,6 +332,7 @@ export default function Page() {
       if (!res.ok) throw Error(result.error ?? 'Action failed');
       await refresh();
       if (result.errors?.length) setError(result.errors.join(' · '));
+      else if (typeof result.message === 'string') setMessage(result.message);
       else setMessage(`${label} completed.`);
       return result;
     } catch (e) {
@@ -366,6 +370,28 @@ export default function Page() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
+  const productGroupMap = new Map<
+    string,
+    { key: string; label: string; itemIds: string[] }
+  >();
+  for (const record of inventory) {
+    const key = JSON.stringify([record.brand ?? '', record.model ?? '']);
+    const group = productGroupMap.get(key) ?? {
+      key,
+      label: `${record.brand || 'Unknown brand'} · ${record.model || 'Unknown model'}`,
+      itemIds: [],
+    };
+    group.itemIds.push(record.id);
+    productGroupMap.set(key, group);
+  }
+  const productGroups = [...productGroupMap.values()].sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
+  const selectedInvestigationGroup = productGroupMap.get(investigationGroup);
+  const investigationCount =
+    investigationGroup === 'all'
+      ? inventory.length
+      : (selectedInvestigationGroup?.itemIds.length ?? 0);
   function openItem(x: Item) {
     setSelected(x.id);
     setSourceId('');
@@ -771,21 +797,65 @@ export default function Page() {
                 </div>
               </div>
               <section className="panel">
-                <h2>Investigate {inventory.length} inventory units</h2>
+                <h2>Investigate {investigationCount} inventory units</h2>
                 <p>{data?.health.coverage}</p>
+                <div className="toolbar">
+                  <Select
+                    value={investigationGroup}
+                    onValueChange={(value) =>
+                      value !== null && setInvestigationGroup(value)
+                    }
+                    disabled={!!busy}
+                  >
+                    <SelectTrigger aria-label="Investigation product group">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        All inventory ({inventory.length} units)
+                      </SelectItem>
+                      {productGroups.map((group) => (
+                        <SelectItem key={group.key} value={group.key}>
+                          {group.label} ({group.itemIds.length} units)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <p className="muted">
                   Live investigations process up to eight product groups per
-                  run. Unsupported source domains and incomplete investigations
+                  run. Select a product group to investigate it separately.
+                  Unsupported source domains and incomplete investigations
                   remain visible. Only CPSC and INIU official domains are
                   currently approved.
                 </p>
                 <Button
-                  disabled={!!busy || !inventory.length}
-                  onClick={() => act({ action: 'scan' }, 'Live investigation')}
+                  disabled={
+                    !!busy ||
+                    !investigationCount ||
+                    (investigationGroup !== 'all' && investigationCount > 1000)
+                  }
+                  onClick={() =>
+                    act(
+                      {
+                        action: 'scan',
+                        ...(selectedInvestigationGroup
+                          ? { itemIds: selectedInvestigationGroup.itemIds }
+                          : {}),
+                      },
+                      'Live investigation',
+                    )
+                  }
                 >
                   <ScanLine />
                   Run live Anakin investigation
                 </Button>
+                {investigationGroup !== 'all' && investigationCount > 1000 && (
+                  <p className="muted">
+                    Scoped investigations support up to 1,000 units. Choose All
+                    inventory to include this group.
+                  </p>
+                )}
                 {!data?.health.keyConfigured && (
                   <div className="notice warning">
                     Configure ANAKIN_API_KEY server-side in .dev.vars. A missing
@@ -1222,7 +1292,7 @@ export default function Page() {
                 <h2>Live official-source monitor</h2>
                 <p className="muted">
                   New monitors are paused to avoid recurring credit consumption.
-                  “Run now” performs an actual provider check and re-extracts
+                  “Run now” queues a provider check and separately re-extracts
                   the source. Scheduled activation is available in Anakin after
                   reviewing the interval.
                 </p>
@@ -1266,6 +1336,19 @@ export default function Page() {
                       Provider ID: {m.providerId || 'Local controlled fixture'}{' '}
                       · Last checked: {time(m.lastCheckedAt)}
                     </p>
+                    {m.run && (
+                      <p className="subtext">
+                        Requested job: {m.run.jobId} · {time(m.run.requestedAt)}{' '}
+                        · Provider completion unconfirmed
+                      </p>
+                    )}
+                    {m.independentReassessment && (
+                      <p className="subtext">
+                        Independent source scrape reassessed{' '}
+                        {m.independentReassessment.assessed} units at{' '}
+                        {time(m.independentReassessment.completedAt)}.
+                      </p>
+                    )}
                     <details>
                       <summary>Monitor state</summary>
                       <pre className="source-text">

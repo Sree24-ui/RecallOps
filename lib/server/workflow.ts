@@ -1,13 +1,19 @@
 import { Store, id, now, payload, type Row } from './store';
+import { z } from 'zod';
 import {
   decide,
   flatten,
   groundRule,
+  normalize,
+  normalizeField,
+  normalizeModel,
   relevant,
   type Inventory,
   type Rule,
   type Decision,
   type SourceLabel,
+  type Condition,
+  type Logic,
 } from '../core/rules';
 import { sha256, safeUrl, publicProviderData } from './security';
 import { Anakin } from './anakin';
@@ -29,6 +35,7 @@ export type Assessment = Decision & {
   rule: Rule | null;
   sourceUrl: string | null;
 };
+export const investigationItemIdsSchema = z.array(z.uuid()).min(1).max(1000);
 export class Workflow {
   anakin: Anakin;
   constructor(
@@ -151,6 +158,11 @@ export class Workflow {
     const item = payload<Inventory>(row),
       decision = decide(item, rule, options),
       assessmentId = id();
+    if (rule && options.discoveryComplete === false) {
+      decision.status = 'needs_review';
+      decision.reason =
+        'Investigation incomplete. One or more selected official sources could not be retrieved or validated.';
+    }
     const ruleId =
       rule && versionId ? await this.persistRule(versionId, rule) : null;
     const assessment: Assessment = {
@@ -415,8 +427,17 @@ export class Workflow {
     ]);
     return event;
   }
-  async liveScan() {
-    const rows = await this.store.all('SELECT * FROM inventory_items');
+  async liveScan(itemIds?: string[]) {
+    const selectedIds =
+      itemIds === undefined
+        ? null
+        : new Set(investigationItemIdsSchema.parse(itemIds));
+    const inventory = await this.store.all('SELECT * FROM inventory_items');
+    const rows = selectedIds
+      ? inventory.filter((r) => selectedIds.has(r.id))
+      : inventory;
+    if (selectedIds && rows.length !== selectedIds.size)
+      throw Error('One or more selected inventory items were not found');
     if (!rows.length) throw Error('Import inventory first');
     const groups = new Map<string, Row[]>();
     const errors: string[] = [];
@@ -466,10 +487,18 @@ export class Workflow {
               Number(a.includes('iniushop.com')),
           );
         if (
-          identity.toUpperCase().includes('INIU') &&
-          !urls.includes(manufacturerUrl)
-        )
-          urls.unshift(manufacturerUrl); // User-supplied official baseline, still fetched through Anakin.
+          items.every((row) => {
+            const item = payload<Inventory>(row);
+            return (
+              normalize(item.brand ?? '') === 'INIU' &&
+              normalizeModel(item.model ?? '') === normalizeModel('BI-B41')
+            );
+          })
+        ) {
+          // The user-supplied recall notices take precedence over interactive checker pages.
+          // They are still freshly retrieved and extracted through Anakin.
+          urls.unshift(manufacturerUrl, officialUrl);
+        }
         if (!urls.length) {
           for (const r of items)
             await this.assess(r, null, null, 'LIVE_ANAKIN', null, {
@@ -481,18 +510,26 @@ export class Workflow {
           continue;
         }
         const documents = [];
+        let retrievalFailed = false;
         for (const url of [...new Set(urls)].slice(0, 2)) {
-          const doc = await this.anakin.scrape(url);
-          const { version } = await this.store.saveSource(url, doc.markdown, {
-            title: doc.rule.title,
-            label: doc.label,
-            providerId: doc.id,
-            authority: url.includes('cpsc.gov')
-              ? 'US regulator'
-              : 'Manufacturer',
-          });
-          await this.persistRule(version.id, doc.rule);
-          documents.push({ ...doc, versionId: version.id });
+          try {
+            const doc = await this.anakin.scrape(url);
+            const { version } = await this.store.saveSource(url, doc.markdown, {
+              title: doc.rule.title,
+              label: doc.label,
+              providerId: doc.id,
+              authority: url.includes('cpsc.gov')
+                ? 'US regulator'
+                : 'Manufacturer',
+            });
+            await this.persistRule(version.id, doc.rule);
+            documents.push({ ...doc, versionId: version.id });
+          } catch (e) {
+            retrievalFailed = true;
+            errors.push(
+              `${url}: ${e instanceof Error ? e.message : 'Source retrieval failed'}`,
+            );
+          }
         }
         for (const r of items) {
           const item = payload<Inventory>(r),
@@ -506,6 +543,7 @@ export class Workflow {
               documents[0]?.versionId ?? null,
               documents[0]?.label ?? 'LIVE_ANAKIN',
               documents[0]?.url ?? null,
+              { discoveryComplete: !retrievalFailed },
             );
             continue;
           }
@@ -530,13 +568,24 @@ export class Workflow {
               shape: logicShape(r.conditions),
               exclusionShape: r.exclusions ? logicShape(r.exclusions) : null,
             });
-          if (
-            relevantDocs.some(
-              (d) => signature(d.rule) !== signature(primary.rule),
-            )
-          )
-            conflict = true;
-          for (const other of relevantDocs.slice(1))
+          for (const other of relevantDocs.slice(1)) {
+            const differs = signature(other.rule) !== signature(primary.rule);
+            if (differs && linkedIniuSubset(primary, other)) {
+              await this.store
+                .audit(r.id, 'source.linked_subset_reconciled', {
+                  policy: 'INIU_BI_B41_LINKED_CONJUNCTION_SUBSET',
+                  primarySourceUrl: primary.url,
+                  primaryVersionId: primary.versionId,
+                  secondarySourceUrl: other.url,
+                  secondaryVersionId: other.versionId,
+                  secondaryClaimUrl: other.rule.claimUrl,
+                  secondaryPredicates: flatten(other.rule.conditions).length,
+                  decisionSource: 'primary_manufacturer_rule',
+                })
+                .run();
+              continue;
+            }
+            if (differs) conflict = true;
             for (const a of flatten(primary.rule.conditions))
               for (const b of flatten(other.rule.conditions))
                 if (
@@ -548,6 +597,7 @@ export class Workflow {
                     JSON.stringify(b.values.map((x) => x.toUpperCase()).sort())
                 )
                   conflict = true;
+          }
           if (relevantDocs.some((d) => d.rule.unresolved.length))
             conflict = true;
           await this.assess(
@@ -556,7 +606,7 @@ export class Workflow {
             primary.versionId,
             primary.label,
             primary.url,
-            { conflict },
+            { conflict, discoveryComplete: !retrievalFailed },
           );
         }
       } catch (e) {
@@ -570,6 +620,7 @@ export class Workflow {
     await this.store
       .audit('investigation', 'investigation.completed', {
         groups: groups.size,
+        itemIds: rows.map((r) => r.id),
         errors,
       })
       .run();
@@ -580,16 +631,67 @@ export class Workflow {
     if (p.label === 'CONTROLLED_DEMO_FIXTURE')
       return this.controlledChange('B');
     const providerId = String(mon.provider_id);
-    await this.anakin.monitorRun(providerId);
+    const submitted = await this.anakin.monitorRun(providerId);
+    if (submitted.success !== true || typeof submitted.jobId !== 'string')
+      throw Error('Monitor run did not return a queued job ID');
+    const run = {
+      jobId: submitted.jobId,
+      status: 'queued',
+      requestedAt: now(),
+    };
+    await this.store.db.batch([
+      this.store.stmt('UPDATE monitor_subscriptions SET payload=? WHERE id=?', [
+        JSON.stringify({ ...p, run }),
+        mon.id,
+      ]),
+      this.store.audit(mon.id, 'monitor.run_queued', run),
+    ]);
     const state = publicProviderData(await this.anakin.monitorGet(providerId));
     const changes = publicProviderData(
       await this.anakin.monitorChanges(providerId),
     );
+    const providerCheckedAt =
+      state &&
+      typeof state === 'object' &&
+      'lastCheckedAt' in state &&
+      typeof state.lastCheckedAt === 'string' &&
+      Number.isFinite(Date.parse(state.lastCheckedAt))
+        ? state.lastCheckedAt
+        : null;
+    const updated = {
+      ...p,
+      state,
+      run,
+      lastCheckedAt: providerCheckedAt,
+      changes,
+    };
     await this.store.run(
       'UPDATE monitor_subscriptions SET payload=? WHERE id=?',
-      [JSON.stringify({ ...p, state, lastCheckedAt: now(), changes }), mon.id],
+      [JSON.stringify(updated), mon.id],
     );
-    return this.reassessUrl(String(mon.url));
+    const reassessment = {
+      ...(await this.reassessUrl(String(mon.url))),
+      method: 'independent_scrape',
+      completedAt: now(),
+    };
+    await this.store.db.batch([
+      this.store.stmt('UPDATE monitor_subscriptions SET payload=? WHERE id=?', [
+        JSON.stringify({ ...updated, independentReassessment: reassessment }),
+        mon.id,
+      ]),
+      this.store.audit(
+        mon.id,
+        'monitor.independent_reassessment',
+        reassessment,
+      ),
+    ]);
+    return {
+      queued: true,
+      jobId: run.jobId,
+      independentReassessment: reassessment,
+      message:
+        'Monitor check queued; a separate source scrape and inventory reassessment completed. Provider monitor completion has not been confirmed.',
+    };
   }
   async reassessUrl(url: string) {
     const doc = await this.anakin.scrape(url);
@@ -621,8 +723,113 @@ export class Workflow {
   }
 }
 
-function logicShape(node: import('../core/rules').Logic): unknown {
+function logicShape(node: Logic): unknown {
   return node.kind === 'condition'
     ? { field: node.field, op: node.op }
     : { kind: node.kind, children: node.children.map(logicShape) };
+}
+
+function conjunctionPredicates(node: Logic): Condition[] | null {
+  if (node.kind === 'condition') return [node];
+  if (
+    !node.children.length ||
+    (node.kind === 'any' && node.children.length !== 1)
+  )
+    return null;
+  const children = node.children.map(conjunctionPredicates);
+  return children.some((child) => child === null)
+    ? null
+    : children.flatMap((child) => child!);
+}
+
+function predicateSignature(condition: Condition): string {
+  const values = condition.values.map((value) =>
+    condition.op === 'model_equals'
+      ? normalizeModel(value)
+      : normalizeField(condition.field, value),
+  );
+  return JSON.stringify({
+    field: condition.field,
+    op: condition.op,
+    values: [...values].sort(),
+    rangeOrder: ['date_range', 'serial_range'].includes(condition.op)
+      ? values
+      : null,
+    precision: condition.precision ?? null,
+  });
+}
+
+function normalizedLogic(node: Logic): unknown {
+  return node.kind === 'condition'
+    ? predicateSignature(node)
+    : { kind: node.kind, children: node.children.map(normalizedLogic) };
+}
+
+function linkedIniuSubset(
+  primary: { url: string; rule: Rule },
+  secondary: { url: string; rule: Rule },
+): boolean {
+  // The linked manufacturer notice must contain the complete regulator conjunction.
+  // This proof selects an existing rule; it never combines criteria across sources.
+  try {
+    if (
+      safeUrl(primary.url) !== safeUrl(manufacturerUrl) ||
+      safeUrl(secondary.url) !== safeUrl(officialUrl) ||
+      safeUrl(secondary.rule.claimUrl) !== safeUrl(manufacturerUrl)
+    )
+      return false;
+  } catch {
+    return false;
+  }
+  for (const rule of [primary.rule, secondary.rule]) {
+    if (
+      normalize(rule.brand) !== 'INIU' ||
+      rule.models.length !== 1 ||
+      normalizeModel(rule.models[0]) !== normalizeModel('BI-B41') ||
+      rule.unresolved.length
+    )
+      return false;
+  }
+  const primaryConditions = conjunctionPredicates(primary.rule.conditions);
+  const secondaryConditions = conjunctionPredicates(secondary.rule.conditions);
+  if (!primaryConditions || !secondaryConditions) return false;
+  const primarySignatures = new Set(primaryConditions.map(predicateSignature));
+  // Both rules already require the same grounded brand through relevant().
+  // An explicit equality for that same subject does not add an eligibility fact.
+  primarySignatures.add(
+    predicateSignature({
+      kind: 'condition',
+      id: 'grounded-subject-brand',
+      field: 'brand',
+      op: 'equals',
+      values: [primary.rule.brand],
+      evidence: primary.rule.scopeEvidence,
+    }),
+  );
+  const secondarySignatures = new Set(
+    secondaryConditions.map(predicateSignature),
+  );
+  if (
+    !secondaryConditions.every((condition) =>
+      primarySignatures.has(predicateSignature(condition)),
+    )
+  )
+    return false;
+  const sharedFields = new Set(
+    secondaryConditions.map((condition) => condition.field),
+  );
+  if (
+    primaryConditions.some(
+      (condition) =>
+        sharedFields.has(condition.field) &&
+        !secondarySignatures.has(predicateSignature(condition)),
+    )
+  )
+    return false;
+  return (
+    secondary.rule.exclusions === null ||
+    (primary.rule.exclusions !== null &&
+      JSON.stringify(normalizedLogic(primary.rule.exclusions)) ===
+        JSON.stringify(normalizedLogic(secondary.rule.exclusions)))
+  );
 }

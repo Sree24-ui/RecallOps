@@ -1,8 +1,8 @@
 # Measured evaluation
 
-Run: 2026-09-09T16:50:30.579Z
+Run: 2026-09-11T03:51:26.912Z
 
-45 controlled combinations; 45 matched their labels. Affected precision 1; recall 1; false positives 0; false negatives 0. Needs-review rate 0.3778. Mean deterministic matching runtime 0.0348 ms.
+45 controlled combinations; 45 matched their labels. Affected precision 1; recall 1; false positives 0; false negatives 0. Needs-review rate 0.3778. Mean deterministic matching runtime 0.0412 ms.
 
 One curated extraction fixture passed schema/evidence checks. Live extraction validity was not measured. Anakin requests: 0. Cache hit rate and credit consumption: unavailable/not applicable.
 

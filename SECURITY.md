@@ -4,11 +4,11 @@ Keep this version local for business-sensitive data until production authenticat
 
 ## Implemented controls
 
-- Server-side Anakin key; ignored `.dev.vars` / environment files; browser never receives it.
+- Server-side Anakin key; ignored `.dev.vars` / environment files; browser never receives it. `npm run build` removes generated local secret files from build output before packaging.
 - Non-local APIs require a server-configured bearer token. Cross-origin operator requests are rejected. The webhook has its own signature boundary.
 - Zod input/rule validation, strict inventory fields, CSV row/byte limits, API and webhook byte limits, approved HTTPS domains, no caller-selected REST base URL, and no direct HTTP scraping fallback.
 - Provider API requests reject redirects and time out. Scraped content is untrusted and escaped in React and HTML packets. It cannot choose tool authorization, domain ranking or final status.
-- Exact excerpt and operand grounding, extraction-depth limits, typed predicates, explicit ambiguity, and deterministic assessment traces. A prompt-injection indicator adds a review requirement.
+- Nonempty original source excerpts, operand grounding, extraction-depth limits, typed predicates, explicit ambiguity, and deterministic assessment traces. Whitespace or paired-bold presentation differences are resolved back to original bytes; ambiguous spans fail. Combined marketplace/country operands fail instead of creating misleading exclusions. A prompt-injection indicator adds a review requirement.
 - Recursive removal of secret-like provider fields from public monitor output; exact configured key redaction in integration errors.
 - Prepared SQL statements; transactional state changes; unique physical-unit identities and event keys; audit update/delete triggers.
 - CSV formula prefix neutralization. Untrusted text is never executed as HTML, code or a spreadsheet formula by the app.

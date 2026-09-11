@@ -8,7 +8,7 @@
 
 **How it works:** Import inventory → Anakin Search discovers sources → URL Scraper extracts a versioned schema with exact excerpts → deterministic all/any/exclusion matching → persisted hold/review actions → source monitoring and reassessment. Wire enriches inventory context from returned marketplace listing fields without inferring a physical serial.
 
-**Anakin products:** Search, URL Scraper, Wire and Website Monitoring adapters are implemented. Their application REST contracts are mocked in tests. Live application execution is not yet verified; the separately captured connected-tool calls must not be presented as that verification.
+**Anakin products:** Search, URL Scraper, Wire and Website Monitoring adapters are implemented and tested. Actual application REST calls retrieved and extracted both official notices, enriched a separate marketplace sample through Amazon Wire, and created a paused monitor with a queued manual run. Signed external monitoring delivery and provider check completion are unverified. See docs/live-verification.json for observed evidence and limits.
 
 **Technical architecture:** React/Vinext, TypeScript, Zod, Cloudflare-compatible route handlers, local D1/SQLite, prepared statements, immutable audit triggers, raw-body HMAC verification and signed-body event deduplication. The engine's explanations come directly from evaluation traces.
 
@@ -30,4 +30,4 @@
 
 **Team:** Sree24-ui. [Add name, role details and approved contact information]
 
-**Honest limitations:** Current evidence domains are CPSC/INIU. No production multi-tenancy or durable background queue. No real external claim submission. Live app Anakin execution, live monitoring receipt, deployment and user validation remain unverified. This is decision support, not legal advice, safety certification or a safe-product guarantee.
+**Honest limitations:** Current evidence domains are CPSC/INIU. No production multi-tenancy or durable background queue. No real external claim submission. Live monitoring receipt and provider check completion, deployment and user validation remain unverified. This is decision support, not legal advice, safety certification or a safe-product guarantee.

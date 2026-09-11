@@ -6,7 +6,10 @@ import {
   readBody,
 } from '../../../lib/server/api';
 import { id, now, payload } from '../../../lib/server/store';
-import type { Assessment } from '../../../lib/server/workflow';
+import {
+  investigationItemIdsSchema,
+  type Assessment,
+} from '../../../lib/server/workflow';
 import { inventorySchema, type Inventory } from '../../../lib/core/rules';
 import { normalizeEnrichment } from '../../../lib/core/enrichment';
 import { parseCsv } from '../../../lib/core/csv';
@@ -14,7 +17,10 @@ import { safeUrl, publicProviderData } from '../../../lib/server/security';
 import { processEvent } from '../../../lib/server/events';
 const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('judge') }),
-  z.object({ action: z.literal('scan') }),
+  z.object({
+    action: z.literal('scan'),
+    itemIds: investigationItemIdsSchema.optional(),
+  }),
   z.object({ action: z.literal('controlled_change') }),
   z.object({
     action: z.literal('import'),
@@ -164,7 +170,7 @@ export async function POST(req: Request) {
       case 'judge':
         return Response.json(await workflow.judge());
       case 'scan':
-        return Response.json(await workflow.liveScan());
+        return Response.json(await workflow.liveScan(body.itemIds));
       case 'controlled_change':
         return Response.json(await workflow.controlledChange('B'));
       case 'import': {

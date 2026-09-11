@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-11T03:51:04.963Z",
+  "scope": "One live investigation of four labeled sample inventory units against the official INIU manufacturer and CPSC notices; separate Wire and paused-monitor checks. Not a population-level extraction accuracy evaluation.",
+  "investigation": {
+    "httpStatus": 200,
+    "groups": 1,
+    "errors": [],
+    "sourceUrls": [
+      "https://iniushop.com/pages/recall-b41",
+      "https://www.cpsc.gov/Recalls/2026/INIU-Recalls-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon"
+    ],
+    "runs": [
+      {
+        "id": "368f1b49-b36c-4f9e-8b79-c9cc35289b2a",
+        "product": "Search",
+        "status": "success",
+        "startedAt": "2026-09-11T03:50:42.137Z",
+        "durationMs": 892,
+        "requestCount": 1,
+        "providerId": "search_09505b147d8feaf184c8ee08a1f10b57"
+      },
+      {
+        "id": "d132e573-dea2-4f79-bf9b-e96bd58d27d3",
+        "product": "Scraper",
+        "status": "success",
+        "startedAt": "2026-09-11T03:50:43.034Z",
+        "durationMs": 12938,
+        "requestCount": 7,
+        "providerId": "936dddde-eade-400e-8fb8-0eddcf12a2bd",
+        "cached": false
+      },
+      {
+        "id": "db825577-890e-4202-a8ad-b979005e717e",
+        "product": "Scraper",
+        "status": "success",
+        "startedAt": "2026-09-11T03:50:56.088Z",
+        "durationMs": 8469,
+        "requestCount": 5,
+        "providerId": "be8164fa-29e4-43c2-984e-7810e1cc9e3f",
+        "cached": false
+      }
+    ],
+    "requestCount": 13,
+    "successfulExtractions": 2,
+    "scraperCacheHits": 0,
+    "scraperCacheObservations": 2,
+    "reportedSearchScraperCredits": null,
+    "samples": [
+      {
+        "assetTag": "INIU-001",
+        "status": "affected",
+        "label": "LIVE_ANAKIN",
+        "quarantined": true,
+        "ruleId": "0402a395-468b-4873-822c-b834f0cb9aa0",
+        "versionId": "ab1851a6-34ae-4ec2-a1aa-e1ce5b40386c",
+        "sourceUrl": "https://iniushop.com/pages/recall-b41",
+        "verifiedCriteria": 12,
+        "totalCriteria": 12
+      },
+      {
+        "assetTag": "INIU-002",
+        "status": "excluded_by_notice",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false,
+        "ruleId": "0402a395-468b-4873-822c-b834f0cb9aa0",
+        "versionId": "ab1851a6-34ae-4ec2-a1aa-e1ce5b40386c",
+        "sourceUrl": "https://iniushop.com/pages/recall-b41",
+        "verifiedCriteria": 12,
+        "totalCriteria": 12
+      },
+      {
+        "assetTag": "INIU-003",
+        "status": "needs_review",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false,
+        "ruleId": "0402a395-468b-4873-822c-b834f0cb9aa0",
+        "versionId": "ab1851a6-34ae-4ec2-a1aa-e1ce5b40386c",
+        "sourceUrl": "https://iniushop.com/pages/recall-b41",
+        "verifiedCriteria": 10,
+        "totalCriteria": 12
+      },
+      {
+        "assetTag": "INIU-004",
+        "status": "excluded_by_notice",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false,
+        "ruleId": "0402a395-468b-4873-822c-b834f0cb9aa0",
+        "versionId": "ab1851a6-34ae-4ec2-a1aa-e1ce5b40386c",
+        "sourceUrl": "https://iniushop.com/pages/recall-b41",
+        "verifiedCriteria": 12,
+        "totalCriteria": 12
+      }
+    ]
+  },
+  "wire": {
+    "verifiedAt": "2026-09-10T13:57:51.899Z",
+    "httpStatus": 200,
+    "assetTag": "WIRE-DEMO-001",
+    "providerId": "38120d23-dad5-4299-b2b3-de68e90869d5",
+    "action": "am_product_details",
+    "asin": "B08LBV1SQS",
+    "reportedCredits": 1,
+    "contributedFields": [
+      "marketplaceIdentifier",
+      "productTitle",
+      "brand",
+      "productUrl"
+    ],
+    "fieldPaths": {
+      "marketplaceIdentifier": "data.data.asin",
+      "productTitle": "data.data.title",
+      "brand": "data.data.brand",
+      "productUrl": "data.data.url"
+    },
+    "physicalModelReturned": false,
+    "physicalSerialInferred": false,
+    "scope": "A separately labeled related INIU 20,000mAh listing; not identified as the recalled BI-B41."
+  },
+  "monitoring": {
+    "createdAt": "2026-09-10T14:04:42.829Z",
+    "providerId": "7783140c-3036-4b76-8e04-2ee488221eff",
+    "isActive": false,
+    "queuedJobId": "ce41b270-1370-45c8-b64c-2d0c04822dbe",
+    "runHttpStatus": 200,
+    "independentReassessment": {
+      "assessed": 5,
+      "versionId": "a51e8705-6e21-4aed-a70a-7e62a737a550",
+      "method": "independent_scrape",
+      "completedAt": "2026-09-10T17:29:20.766Z"
+    },
+    "runCalls": [
+      {
+        "id": "ad3cbdf2-d0cf-4c4f-b29e-98d9575afd0e",
+        "product": "Scraper",
+        "status": "success",
+        "startedAt": "2026-09-10T17:29:14.362Z",
+        "durationMs": 6348,
+        "requestCount": 4,
+        "providerId": "3138e014-9ccd-4a18-9a12-5912d32c0564",
+        "cached": false
+      },
+      {
+        "id": "1b8b62f2-7485-491f-8b39-7b800d91a317",
+        "product": "Monitoring",
+        "status": "success",
+        "startedAt": "2026-09-10T17:29:14.340Z",
+        "durationMs": 18,
+        "requestCount": 1
+      },
+      {
+        "id": "c6aad9a3-bf8d-439e-bf70-d4816bf8ac8d",
+        "product": "Monitoring",
+        "status": "success",
+        "startedAt": "2026-09-10T17:29:14.320Z",
+        "durationMs": 18,
+        "requestCount": 1,
+        "providerId": "7783140c-3036-4b76-8e04-2ee488221eff"
+      },
+      {
+        "id": "8fc95b8c-522a-47a1-a1fd-1e8df229e3a9",
+        "product": "Monitoring",
+        "status": "success",
+        "startedAt": "2026-09-10T17:29:14.133Z",
+        "durationMs": 182,
+        "requestCount": 1,
+        "providerId": "ce41b270-1370-45c8-b64c-2d0c04822dbe"
+      }
+    ],
+    "laterProviderState": {
+      "verifiedAt": "2026-09-10T17:30:37.711Z",
+      "isActive": false,
+      "lastCheckedAt": null,
+      "changeCount": 0
+    },
+    "providerRunCompletionVerified": false,
+    "externalSignedWebhookDeliveryVerified": false,
+    "controlledChangeVerified": true
+  },
+  "observedFailuresAndCorrections": [
+    {
+      "providerId": "8f273a01-459b-40a2-9df7-168c1839a8f2",
+      "finding": "Recursive extraction schema returned failed structured extraction; replaced with a finite provider schema and explicit success-data envelope decoding."
+    },
+    {
+      "providerId": "b164b52e-c737-47f3-9220-89bf1ce573ea",
+      "finding": "Combined Amazon USA retailer operand caused false exclusions during live QA. Compound marketplace/country operands now fail grounding; prompt requires separate fields. Final sample outcomes above supersede that assessment."
+    },
+    {
+      "providerId": "a138cef6-74d7-49ee-b6f5-b7e64649d1fa",
+      "finding": "Date-only alternate eligibility branch was rejected by source comparison. Each inclusion alternative must now require model and source-mandated serial before rule acceptance."
+    },
+    {
+      "providerId": "d8bd999c-a12b-4a84-bf74-5a1842873338",
+      "finding": "Retired BI-B41 candidate Amazon listing returned HTTP404; reported credits0. The distinct related-listing demonstration does not replace or conceal that failure."
+    }
+  ],
+  "limits": [
+    "Extraction can vary; these observations do not prove all source clauses will always be captured. Invalid or conflicting source rules require review.",
+    "No public deployment, external claim, customer message, recurring monitor activation or hackathon submission was performed.",
+    "Controlled Judge and matcher evaluation results are not counted as live provider successes.",
+    "No API key or raw provider source text is included in this report."
+  ],
+  "builtBrowserVerification": {
+    "verifiedAt": "2026-09-11T08:45:31.901Z",
+    "runtime": "compiled Cloudflare worker",
+    "keyConfigured": true,
+    "sample": [
+      {
+        "assetTag": "INIU-001",
+        "status": "affected",
+        "label": "LIVE_ANAKIN",
+        "quarantined": true
+      },
+      {
+        "assetTag": "INIU-002",
+        "status": "excluded_by_notice",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false
+      },
+      {
+        "assetTag": "INIU-003",
+        "status": "needs_review",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false
+      },
+      {
+        "assetTag": "INIU-004",
+        "status": "excluded_by_notice",
+        "label": "LIVE_ANAKIN",
+        "quarantined": false
+      }
+    ],
+    "packet": {
+      "status": 200,
+      "liveLabel": true
+    },
+    "saleExcludesAffected": true,
+    "holdContainsAffected": true,
+    "browserErrors": []
+  }
+}

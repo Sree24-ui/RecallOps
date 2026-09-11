@@ -88,6 +88,46 @@ test('CSV review and import through the UI', async ({ page }) => {
     page.getByRole('button', { name: 'E2E-IMPORT-1', exact: true }),
   ).toBeVisible();
 });
+test('selected product group sends only its inventory IDs (mocked provider workflow)', async ({
+  page,
+}) => {
+  const state = await (await page.request.get('/api/workspace')).json();
+  const expected = state.inventory
+    .filter(
+      (item: { brand: string; model: string }) =>
+        item.brand === 'INIU' && item.model === 'BI-B41',
+    )
+    .map((item: { id: string }) => item.id)
+    .sort();
+  expect(expected).toHaveLength(4);
+  let submitted: string[] | undefined;
+  await page.route('**/api/workspace', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      if (body.action === 'scan') {
+        submitted = body.itemIds;
+        await route.fulfill({ json: { groups: 1, errors: [] } });
+        return;
+      }
+    }
+    await route.continue();
+  });
+  await page.goto('/');
+  await page
+    .getByRole('button', { name: 'Investigation', exact: true })
+    .click();
+  await page
+    .getByRole('combobox', { name: 'Investigation product group' })
+    .click();
+  await page.getByRole('option', { name: /INIU.*BI-B41.*4 units/ }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Investigate 4 inventory units' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Run live Anakin investigation', exact: true })
+    .click();
+  await expect.poll(() => submitted?.slice().sort()).toEqual(expected);
+});
 test('mobile navigation and accessible viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');

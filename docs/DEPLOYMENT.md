@@ -18,7 +18,7 @@ npm test
 npm run build
 ```
 
-The build emits a Cloudflare-compatible server under `dist/server/` and static client assets. `npm start -- --port 3001` uses Wrangler's local runtime against the built server configuration. Apply local migrations before exercising it. Stop an existing compiled server before rebuilding or reinstalling dependencies, then restart it; the old process can retain obsolete asset filenames. Production deployment has not been executed or verified.
+The build emits a Cloudflare-compatible server under `dist/server/` and static client assets. Use `npm run build`: its postbuild step removes local `.dev.vars*` and `.env*` copies emitted by the Cloudflare preview plugin. Never package local credentials with the deployment. `npm start -- --port 3001` uses Wrangler's local runtime against the built server configuration. Apply local migrations before exercising it. For live credentials when using this compiled configuration, append `--env-file /absolute/path/to/RecallOps/.dev.vars` so Wrangler loads the ignored file from the repository root rather than looking under `dist/server/`. Stop an existing compiled server before rebuilding or reinstalling dependencies, then restart it; the old process can retain obsolete asset filenames. Production deployment has not been executed or verified.
 
 ## Future public deployment — requires separate authorization/configuration
 

@@ -62,30 +62,31 @@ export type Condition = {
   precision?: 'day' | 'month';
 };
 export type Logic = Condition | { kind: 'all' | 'any'; children: Logic[] };
+export const conditionSchema = z
+  .object({
+    kind: z.literal('condition'),
+    id: z.string().max(80),
+    field: z.enum(fields),
+    op: z.enum([
+      'equals',
+      'model_equals',
+      'in',
+      'not_in',
+      'prefix',
+      'suffix',
+      'serial_range',
+      'date_range',
+      'boolean',
+      'unsupported',
+    ]),
+    values: z.array(z.string().max(300)).max(60),
+    evidence: z.string().min(1).max(800),
+    precision: z.enum(['day', 'month']).optional(),
+  })
+  .strict();
 export const logicSchema: z.ZodType<Logic> = z.lazy(() =>
   z.union([
-    z
-      .object({
-        kind: z.literal('condition'),
-        id: z.string().max(80),
-        field: z.enum(fields),
-        op: z.enum([
-          'equals',
-          'model_equals',
-          'in',
-          'not_in',
-          'prefix',
-          'suffix',
-          'serial_range',
-          'date_range',
-          'boolean',
-          'unsupported',
-        ]),
-        values: z.array(z.string().max(300)).max(60),
-        evidence: z.string().min(1).max(800),
-        precision: z.enum(['day', 'month']).optional(),
-      })
-      .strict(),
+    conditionSchema,
     z
       .object({
         kind: z.enum(['all', 'any']),
@@ -136,6 +137,20 @@ export const normalize = (s: string) =>
 export const normalizeModel = (s: string) =>
   normalize(s).replace(/[\s\-_]/g, '');
 const truth = (a: boolean): true | false => a;
+export function normalizeField(field: Field, value: string): string {
+  const n = normalize(value);
+  if (
+    field === 'purchaseCountry' &&
+    ['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA'].includes(n)
+  )
+    return 'US';
+  if (
+    ['retailer', 'channel'].includes(field) &&
+    ['AMAZON', 'AMAZON.COM'].includes(n)
+  )
+    return 'AMAZON';
+  return n;
+}
 type Tri = true | false | null;
 function combine(kind: 'all' | 'any', values: Tri[]): Tri {
   if (!values.length) return null;
@@ -159,8 +174,8 @@ function leaf(c: Condition, item: Inventory): Tri {
   const raw = item[c.field];
   if (raw === undefined || raw.trim() === '') return null;
   if (c.field === 'serial' && /\s/.test(raw.trim())) return null;
-  const n = normalize(raw),
-    vs = c.values.map(normalize);
+  const n = normalizeField(c.field, raw),
+    vs = c.values.map((value) => normalizeField(c.field, value));
   switch (c.op) {
     case 'equals':
       return vs.length === 1 ? truth(n === vs[0]) : null;
@@ -173,9 +188,13 @@ function leaf(c: Condition, item: Inventory): Tri {
     case 'not_in':
       return vs.length ? truth(!vs.includes(n)) : null;
     case 'prefix':
-      return vs.length === 1 && vs[0] ? truth(n.startsWith(vs[0])) : null;
+      return vs.length && vs.every(Boolean)
+        ? truth(vs.some((value) => n.startsWith(value)))
+        : null;
     case 'suffix':
-      return vs.length === 1 && vs[0] ? truth(n.endsWith(vs[0])) : null;
+      return vs.length && vs.every(Boolean)
+        ? truth(vs.some((value) => n.endsWith(value)))
+        : null;
     case 'boolean':
       return vs.length === 1 &&
         ['TRUE', 'FALSE'].includes(n) &&
@@ -327,6 +346,10 @@ export function groundRule(input: unknown, markdown: string): Rule {
     ...(rule.exclusions ? flatten(rule.exclusions) : []),
   ];
   if (nodes.length > 80) throw Error('Extraction exceeds condition limit');
+  rule.scopeEvidence = sourceExcerpt(markdown, rule.scopeEvidence);
+  rule.informationEvidence = sourceExcerpt(markdown, rule.informationEvidence);
+  for (const node of nodes)
+    node.evidence = sourceExcerpt(markdown, node.evidence);
   for (const quote of [
     rule.scopeEvidence,
     rule.informationEvidence,
@@ -334,12 +357,21 @@ export function groundRule(input: unknown, markdown: string): Rule {
   ])
     if (!markdown.includes(quote))
       throw Error('Extraction evidence is not an exact source excerpt');
-  if (!nodes.some((x) => x.field === 'model'))
-    throw Error('Notice lacks an explicit model condition');
+  if (!guaranteesInclusionField(rule.conditions, 'model'))
+    throw Error(
+      'Every inclusion alternative must require an explicit model condition',
+    );
   for (const c of nodes) {
+    if (
+      (c.field === 'retailer' || c.field === 'channel') &&
+      c.values.some(compoundMarketplaceOperand)
+    )
+      throw Error(
+        'Compound retailer/channel operand combines a marketplace and market; extract separate retailer/channel and purchaseCountry predicates with explicit logic',
+      );
     const required = ['date_range', 'serial_range'].includes(c.op)
       ? 2
-      : ['in', 'not_in', 'unsupported'].includes(c.op)
+      : ['in', 'not_in', 'prefix', 'suffix', 'unsupported'].includes(c.op)
         ? null
         : 1;
     if (
@@ -383,10 +415,10 @@ export function groundRule(input: unknown, markdown: string): Rule {
     );
   if (
     /(?:only|limited)[\s\S]{0,180}(?:serial|\bSN\b)/i.test(markdown) &&
-    !nodes.some((c) => c.field === 'serial')
+    !guaranteesInclusionField(rule.conditions, 'serial')
   )
-    rule.unresolved.push(
-      'Serial eligibility language exists but no serial condition was extracted',
+    throw Error(
+      'Every inclusion alternative must require the source-mandated serial condition',
     );
   // Extraction is evidence, never executable policy or tool authorization.
   if (
@@ -398,6 +430,83 @@ export function groundRule(input: unknown, markdown: string): Rule {
       'Potential prompt injection in source content; manual review required',
     );
   return rule;
+}
+
+function guaranteesInclusionField(node: Logic, field: Field): boolean {
+  if (node.kind === 'condition') return node.field === field;
+  // A conjunction inherits any mandatory field; every alternative in a
+  // disjunction must carry it. Exclusion predicates cannot supply this proof.
+  return node.kind === 'all'
+    ? node.children.some((child) => guaranteesInclusionField(child, field))
+    : node.children.every((child) => guaranteesInclusionField(child, field));
+}
+
+function compoundMarketplaceOperand(value: string): boolean {
+  // Amazon plus a named market requires two inventory facts. Treating the
+  // compound as a retailer string makes "not_in" exclusions falsely match.
+  // Detect this known ambiguity without stripping its market or guessing how
+  // other retailer names, country fields, or product identifiers should split.
+  const normalized = normalize(value)
+    .replace(/\./g, '')
+    .replace(/[()[\]{}_,/:;-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const merchant = 'AMAZON(?:COM)?';
+  const market =
+    '(?:US|USA|UNITED STATES(?: OF AMERICA)?|UK|GB|GBR|UNITED KINGDOM|CA|CANADA|AU|AUSTRALIA|DE|GERMANY|FR|FRANCE|IT|ITALY|ES|SPAIN|JP|JAPAN|IN|INDIA|MX|MEXICO|BR|BRAZIL|AE|UAE|UNITED ARAB EMIRATES|SA|SAUDI ARABIA)';
+  return new RegExp(`^(?:${merchant} ${market}|${market} ${merchant})$`).test(
+    normalized,
+  );
+}
+
+function sourceExcerpt(markdown: string, quote: string): string {
+  if (!quote.trim()) throw Error('Extraction evidence is empty');
+  if (markdown.includes(quote)) return quote;
+  const tokens = quote.trim().split(/\s+/u);
+  const pattern = tokens
+    .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('\\s+');
+  let original: string | undefined;
+  // A single exact token sequence may differ only in whitespace. Store the
+  // original source span, never a normalized/fuzzy reconstruction.
+  for (const match of markdown.matchAll(new RegExp(pattern, 'gu'))) {
+    if (original !== undefined && original !== match[0])
+      throw Error('Extraction evidence is not an exact source excerpt');
+    original = match[0];
+  }
+  if (original !== undefined) return original;
+  // Extractors may omit paired Markdown bold delimiters. Resolve that visible
+  // text only when unique, retaining an exact span of the original source.
+  // No punctuation, wording, case, strike-through or identifier edits are made.
+  const omitted = new Set<number>();
+  for (const match of markdown.matchAll(/\*\*(?=\S)([\s\S]*?\S)\*\*/g)) {
+    for (const i of [
+      match.index,
+      match.index + 1,
+      match.index + match[0].length - 2,
+      match.index + match[0].length - 1,
+    ])
+      omitted.add(i);
+  }
+  const offsets: number[] = [];
+  let visible = '';
+  for (let i = 0; i < markdown.length; i++) {
+    if (omitted.has(i)) continue;
+    offsets.push(i);
+    visible += markdown[i];
+  }
+  for (const match of visible.matchAll(new RegExp(pattern, 'gu'))) {
+    let start = offsets[match.index],
+      end = offsets[match.index + match[0].length - 1] + 1;
+    if (omitted.has(start - 1) && omitted.has(start - 2)) start -= 2;
+    if (omitted.has(end) && omitted.has(end + 1)) end += 2;
+    const span = markdown.slice(start, end);
+    if (original !== undefined && original !== span)
+      throw Error('Extraction evidence is not an exact source excerpt');
+    original = span;
+  }
+  if (original !== undefined) return original;
+  throw Error('Extraction evidence is not an exact source excerpt');
 }
 
 function containsOperand(

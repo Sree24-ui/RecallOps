@@ -16,8 +16,16 @@ Inspect INIU-001's case: final status, immediate action, identity, seven evaluat
 
 Open Monitoring and run **A → B**. Compare stored snapshots and previous/current decisions. The new event creates an inspectable assessment and review task. Repeating B without a source change is idempotent.
 
-Open Anakin health. Judge Mode does not create provider-success rows. With a server-side key configured, use Investigation for live calls. Real monitor creation starts paused; use Run now for an on-demand provider execution. A public webhook receiver is required for external delivery.
+Open Anakin health. Judge Mode does not create provider-success rows. With a server-side key configured, use Investigation for live calls. Real monitor creation starts paused; use Run now to queue a provider check and independently scrape/reassess the source. A queued job is not evidence of completed provider monitoring. A public webhook receiver is required for external delivery.
 
 The official recall URL uses `/2026/`, but the notice date is December 5, 2025 and its ID is 26-135. Original sale facts must not be replaced by reseller acquisition dates. Manufacturer contact hours differ from CPSC hours; the packet avoids inventing a single reconciled time.
 
 No real customer contact, claim, disposal or payment occurs. The sample customer address uses `.invalid`. Check `docs/RELEASE-VERIFICATION.md` for measured browser-demo runtime and current live verification gaps.
+
+## Live verification alongside the controlled demo
+
+With the local key configured, open Investigation and select **INIU / BI-B41 (4 units)**, then run the live investigation. Inspect the stored LIVE_ANAKIN source label and actual provider IDs. Extraction can vary between calls; rejected or conflicting criteria must remain review cases. Running Judge Mode again deliberately replaces the latest sample assessments with labeled controlled results.
+
+The separate **WIRE-DEMO-001** record demonstrates actual Amazon Wire enrichment for a related INIU 20,000mAh listing. It is not identified as BI-B41: the provider returned no physical model or serial. The retired BI-B41 listing returned an observable 404.
+
+The live CPSC monitor remains paused. Its manual request is queued; the independently completed scrape/reassessment is labeled separately. The public signed-webhook path still needs a configured HTTPS receiver.
