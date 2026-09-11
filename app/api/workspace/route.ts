@@ -12,9 +12,14 @@ import {
 } from '../../../lib/server/workflow';
 import { inventorySchema, type Inventory } from '../../../lib/core/rules';
 import { normalizeEnrichment } from '../../../lib/core/enrichment';
-import { parseCsv } from '../../../lib/core/csv';
-import { safeUrl, publicProviderData } from '../../../lib/server/security';
+import { MAX_CSV_BYTES, parseCsv } from '../../../lib/core/csv';
+import {
+  safeUrl,
+  publicProviderData,
+  sha256,
+} from '../../../lib/server/security';
 import { processEvent } from '../../../lib/server/events';
+import { demoInventory, iniuRule } from '../../../fixtures/demo';
 const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('judge') }),
   z.object({
@@ -24,7 +29,7 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('controlled_change') }),
   z.object({
     action: z.literal('import'),
-    csv: z.string().max(256000),
+    csv: z.string().max(MAX_CSV_BYTES),
     reviewOnly: z.boolean().optional(),
   }),
   z.object({ action: z.literal('manual'), item: inventorySchema }),
@@ -32,6 +37,7 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('task'),
     taskId: z.uuid(),
+    revision: z.string().regex(/^[a-f0-9]{64}$/),
     status: z.enum(['open', 'in_progress', 'done']),
     owner: z.string().trim().min(1).max(100),
     dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -85,6 +91,13 @@ export async function GET(req: Request) {
     ]);
     return Response.json(
       {
+        demo: {
+          sampleCount: demoInventory.length,
+          subject: [iniuRule.brand, ...iniuRule.models].join(' '),
+          monitoringReady: monitors.some(
+            (r) => payload(r).label === 'CONTROLLED_DEMO_FIXTURE',
+          ),
+        },
         inventory: items.map((r) => {
           const c = cases.find((x) => x.item_id === r.id),
             a = assessments.find((x) => x.item_id === r.id);
@@ -99,12 +112,15 @@ export async function GET(req: Request) {
               : null,
           };
         }),
-        tasks: tasks.map((r) => ({
-          id: r.id,
-          caseId: r.case_id,
-          status: r.status,
-          ...payload(r),
-        })),
+        tasks: await Promise.all(
+          tasks.map(async (r) => ({
+            id: r.id,
+            caseId: r.case_id,
+            status: r.status,
+            ...payload(r),
+            revision: await sha256(String(r.payload) + String(r.status)),
+          })),
+        ),
         sources: sources.map((r) => ({
           id: r.id,
           contentHash: r.content_hash,
@@ -207,20 +223,60 @@ export async function POST(req: Request) {
           body.taskId,
         ]);
         if (!task) throw Error('Task not found');
-        await store.db.batch([
-          store.stmt('UPDATE case_tasks SET status=?,payload=? WHERE id=?', [
-            body.status,
-            JSON.stringify({
-              ...payload(task),
-              owner: body.owner,
-              dueDate: body.dueDate,
-              priority: body.priority,
-            }),
-            body.taskId,
-          ]),
-          store.audit(String(task.case_id), 'task.updated', body),
+        if (
+          body.revision !==
+          (await sha256(String(task.payload) + String(task.status)))
+        )
+          return Response.json(
+            {
+              error:
+                'This task changed after you opened it. Refresh and review the latest values.',
+            },
+            { status: 409 },
+          );
+        const nextPayload = JSON.stringify({
+          ...payload(task),
+          owner: body.owner,
+          dueDate: body.dueDate,
+          priority: body.priority,
+          updateId: id(),
+        });
+        const results = await store.db.batch([
+          store.stmt(
+            'UPDATE case_tasks SET status=?,payload=? WHERE id=? AND payload=? AND status=?',
+            [body.status, nextPayload, body.taskId, task.payload, task.status],
+          ),
+          store.stmt(
+            'INSERT INTO audit_events(id,created_at,payload,entity_id,event_type) SELECT ?,?,?,?,? WHERE EXISTS (SELECT 1 FROM case_tasks WHERE id=? AND payload=?)',
+            [
+              id(),
+              now(),
+              JSON.stringify(body),
+              String(task.case_id),
+              'task.updated',
+              body.taskId,
+              nextPayload,
+            ],
+          ),
         ]);
-        return Response.json({ updated: true });
+        if (!results[0].meta.changes)
+          return Response.json(
+            {
+              error:
+                'This task changed while saving. Refresh and review the latest values.',
+            },
+            { status: 409 },
+          );
+        return Response.json({
+          updated: true,
+          task: {
+            ...payload({ ...task, payload: nextPayload }),
+            id: task.id,
+            caseId: task.case_id,
+            status: body.status,
+            revision: await sha256(nextPayload + body.status),
+          },
+        });
       }
       case 'wire': {
         const item = await store.first(
@@ -304,11 +360,32 @@ export async function POST(req: Request) {
         return Response.json(await workflow.refreshMonitor(mon));
       }
       case 'retry_events': {
-        for (const event of await store.all(
+        const pending = await store.all(
           "SELECT * FROM monitor_events WHERE status IN ('pending','failed') LIMIT 5",
-        ))
-          await processEvent(store, workflow, event.id);
-        return Response.json({ processed: true });
+        );
+        for (const event of pending) {
+          try {
+            await processEvent(store, workflow, event.id);
+          } catch {
+            // One exhausted event must not prevent the remaining events from retrying.
+          }
+        }
+        const after = await Promise.all(
+          pending.map((event) =>
+            store.first('SELECT * FROM monitor_events WHERE id=?', [event.id]),
+          ),
+        );
+        const succeeded = after.filter(
+          (event) => event?.status === 'processed',
+        ).length;
+        return Response.json({
+          attempted: pending.length,
+          succeeded,
+          remaining: pending.length - succeeded,
+          message: pending.length
+            ? `${succeeded} of ${pending.length} events processed; ${pending.length - succeeded} remain unresolved.`
+            : 'No pending or failed events to retry.',
+        });
       }
     }
   } catch (e) {

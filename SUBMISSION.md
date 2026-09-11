@@ -1,33 +1,52 @@
-# RecallOps — Anakin Forge Hackathon submission draft
+# RecallOps — Anakin Forge submission draft
 
-**One line:** An autonomous product-safety agent that prevents recalled products from being resold.
+Prepared from the Project Details fields in the supplied form screenshots. The form has not been filled or submitted.
 
-**Problem:** Electronics resellers manage physical units with differing serials, variants and purchase history. A recall's model name or a static regulator feed is insufficient to establish individual eligibility and remedy steps.
+## Project Title
 
-**Solution:** RecallOps investigates official source pages, preserves evidence, evaluates every mandatory condition with deterministic code, and converts affected results into internal quarantine, cases, staff tasks and a remedy packet.
+RecallOps
 
-**How it works:** Import inventory → Anakin Search discovers sources → URL Scraper extracts a versioned schema with exact excerpts → deterministic all/any/exclusion matching → persisted hold/review actions → source monitoring and reassessment. Wire enriches inventory context from returned marketplace listing fields without inferring a physical serial.
+## Project Description
 
-**Anakin products:** Search, URL Scraper, Wire and Website Monitoring adapters are implemented and tested. Actual application REST calls retrieved and extracted both official notices, enriched a separate marketplace sample through Amazon Wire, and created a paused monitor with a queued manual run. Signed external monitoring delivery and provider check completion are unverified. See docs/live-verification.json for observed evidence and limits.
+RecallOps helps small electronics resellers, refurbishers, repair shops, and equipment teams decide which physical inventory units need recall action. Matching a product name is not enough: serial numbers, purchase dates, original sellers, and explicit exclusions can change eligibility.
 
-**Technical architecture:** React/Vinext, TypeScript, Zod, Cloudflare-compatible route handlers, local D1/SQLite, prepared statements, immutable audit triggers, raw-body HMAC verification and signed-body event deduplication. The engine's explanations come directly from evaluation traces.
+Users import a CSV or add units manually. Anakin Search discovers official sources, and URL Scraper retrieves notices and extracts structured conditions. RecallOps preserves source versions and supporting excerpts, then uses deterministic TypeScript rules to classify each unit as affected, excluded by notice, needing review, or having no relevant notice within the investigated scope.
 
-**Innovation:** Unit-level eligibility and evidence-preserving actions close the gap between discovering a notice and holding the correct physical inventory. The INIU example demonstrates why exact serials and manufacturer channel exclusions matter.
+Affected units receive persistent internal quarantine, a case, staff tasks, and an HTML action packet. Missing facts and conflicting evidence remain review cases; acknowledgment never automatically releases a hold.
 
-**Scalability:** Group investigations by product identity, cache versioned source content, maintain per-notice evidence and reassess only relevant units. Production queueing, distributed quota coordination and tenant isolation remain future work.
+The local application includes a responsive dashboard, searchable inventory, evidence history, exports, and integration telemetry. A real four-unit investigation against CPSC and INIU notices verified the expected outcomes. Separate live checks verified Amazon Wire enrichment, paused monitor creation, and a queued manual monitoring request. Provider monitor completion and public webhook delivery remain unverified.
 
-**Business viability:** Potential per-organization subscription for small resale and refurbishment teams. Pricing, willingness to pay and customer validation have not been tested; no market or revenue claims are made.
+A clearly labeled 24-unit Judge Mode demonstrates the workflow without provider calls. RecallOps is decision support, not a product-safety guarantee. Built by sole contributor Sree24-ui.
 
-**Social impact:** Intended to reduce recalled electronics returning to circulation and make recall response traceable. No measured injury-prevention or customer outcomes are claimed.
+## Project Github link
 
-**Demo:** Follow DEMO.md. The 24-unit Judge Mode is clearly controlled; the A/B synthetic notice demonstrates persisted reassessment. Review docs/EVALUATION.md for the measured controlled dataset results and their limits.
+https://github.com/Sree24-ui/RecallOps
 
-**Repository:** https://github.com/Sree24-ui/RecallOps
+## Explain in detail where you had used Anakin in your project
 
-**Deployment:** [Add only after deployment is verified]
+Anakin supplies the live source retrieval and enrichment for RecallOps. The application makes authenticated REST calls from its server; keys stay out of browser code. Connected-tool research and controlled fixtures are recorded separately from application integration results.
 
-**Video:** [Add recorded demonstration URL]
+Search starts with the inventory product identity and discovers candidate official recall pages. The current allowlist covers CPSC and INIU. Investigation can target a product group, with up to eight groups processed per run. Search success, timing, request counts, and returned provider identifiers appear in Anakin health.
 
-**Team:** Sree24-ui. [Add name, role details and approved contact information]
+URL Scraper retrieves official markdown through asynchronous jobs and generates structured recall data using a finite extraction schema. Inclusion and exclusion groups preserve alternatives and mandatory conditions. The adapter validates successful extraction envelopes; page retrieval alone does not count as extraction success. Local checks preserve exact original source excerpts and validate operands and limits. Invalid extraction is rejected; unresolved eligibility requires review. Deterministic code, rather than the extractor, evaluates physical-unit facts and determines assessments.
 
-**Honest limitations:** Current evidence domains are CPSC/INIU. No production multi-tenancy or durable background queue. No real external claim submission. Live monitoring receipt and provider check completion, deployment and user validation remain unverified. This is decision support, not legal advice, safety certification or a safe-product guarantee.
+On September 11, a live investigation successfully searched and extracted both the official INIU manufacturer and CPSC notices. Four labeled sample units produced one affected result with a persisted hold, two exclusions, and one missing-serial review. Both uncached source extractions and the actual provider IDs were recorded. These observations demonstrate this specific workflow, not general extraction accuracy.
+
+Wire discovers Amazon's am_product_details read action and retrieves marketplace context. A separate, clearly identified INIU 20,000mAh listing successfully contributed marketplace identifier, product title, brand, and product URL, with one reported credit. It was not identified as the recalled BI-B41, and no physical serial was inferred. The failed BI-B41 listing request remains visible.
+
+Website Monitoring created a real paused monitor and accepted a manual Run now request with a queued job ID. A separate URL Scraper retrieval completed and reassessed five relevant sample records. Completion of the provider monitoring job and external signed-webhook delivery remain unverified. The implemented webhook receiver checks raw-body signatures and deduplicates signed event identities, but this is not a claim of verified public delivery.
+
+The 24-unit Judge Mode and synthetic A-to-B notice change exercise the actual matcher, persistence, and reassessment without Anakin calls. Provider failures remain visible; the app does not silently substitute fixtures or direct scraping.
+
+## Required external items
+
+- GitHub star screenshot: not available yet. Capture a genuine screenshot after starring the requested repository. The form accepts one file, maximum 10 MB.
+- Deployed Link: pending deployment and access verification. localhost is not a deployed link.
+- Demo Video link: upload the prepared local demo video to Drive, YouTube or Loom and paste its viewable link.
+- Social Media Post: publish one reviewed draft in [social drafts](docs/SOCIAL-DRAFTS.md) with the required Anakin tag, then paste that post URL.
+
+The GitHub repository is currently private. Confirm judges can access it before submission. Personal/account details and any earlier form pages require your review.
+
+## Prepared assets and final checklist
+
+See [submission readiness](docs/SUBMISSION-CHECKLIST.md), [demo narration](docs/DEMO-VIDEO-SCRIPT.md) and [UI verification](docs/UI-VERIFICATION.md). The local submission pack contains the captioned video, screenshots and plain-text answer files.

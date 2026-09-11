@@ -286,7 +286,7 @@ export class Workflow {
     const rule = groundRule(iniuRule, fixtureMarkdown);
     await this.persistRule(version.id, rule);
     const rows = await this.store.all('SELECT * FROM inventory_items');
-    const results = [];
+    const results: (Assessment & { id: string })[] = [];
     for (const row of rows) {
       if (!demoInventory.some((x) => x.assetTag === row.asset_tag)) continue;
       const item = payload<Inventory>(row);
@@ -301,7 +301,10 @@ export class Workflow {
         ),
       );
     }
-    const affected = rows.find((r) => r.asset_tag === 'INIU-001');
+    const affected = rows.find(
+      (r) =>
+        r.id === results.find((result) => result.status === 'affected')?.itemId,
+    );
     if (affected) {
       const sale = await this.store.first(
         'SELECT * FROM sales_records WHERE item_id=?',
@@ -325,12 +328,16 @@ export class Workflow {
     await this.store
       .audit('judge', 'judge.completed', {
         label: 'CONTROLLED_DEMO_FIXTURE',
-        units: 24,
+        units: demoInventory.length,
         scope:
           'INIU example and controlled notice only; no general recall search performed',
       })
       .run();
-    return { assessed: 24, label: 'CONTROLLED_DEMO_FIXTURE' };
+    return {
+      assessed: demoInventory.length,
+      selectedItemId: affected?.id ?? results[0]?.itemId,
+      label: 'CONTROLLED_DEMO_FIXTURE',
+    };
   }
   async controlledChange(version: 'A' | 'B') {
     const url = 'https://recallops.invalid/controlled-notice',

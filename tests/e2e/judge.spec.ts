@@ -19,13 +19,22 @@ test('complete Judge workflow, case evidence, exports and change reassessment', 
   await page.getByRole('button', { name: 'Inspect source version' }).click();
   await expect(page.locator('pre.source-text')).toContainText('000G21');
   await page.getByRole('button', { name: 'Inventory', exact: true }).click();
+  await page
+    .getByRole('textbox', { name: 'Search inventory' })
+    .fill('INIU-002');
   await page.getByRole('button', { name: 'INIU-002', exact: true }).click();
   await expect(page.locator('.badge.excluded_by_notice')).toBeVisible();
   await page.getByRole('button', { name: 'Inventory', exact: true }).click();
+  await page
+    .getByRole('textbox', { name: 'Search inventory' })
+    .fill('INIU-003');
   await page.getByRole('button', { name: 'INIU-003', exact: true }).click();
   await expect(page.locator('.badge.needs_review')).toBeVisible();
   await expect(page.getByText('Not recorded', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Inventory', exact: true }).click();
+  await page
+    .getByRole('textbox', { name: 'Search inventory' })
+    .fill('INIU-001');
   await page.getByRole('button', { name: 'INIU-001', exact: true }).click();
   await page
     .getByRole('button', { name: 'Acknowledge case', exact: true })

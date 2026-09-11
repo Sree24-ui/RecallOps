@@ -86,8 +86,25 @@ export async function GET(req: Request) {
           const a = r.assessment,
             s = sources.find((s) => s.id === a?.versionId),
             source = s ? payload(s) : null;
-          return `<article><h2>${h(r.assetTag)} · ${h(r.title)}</h2><p><strong>${h(a?.status ?? 'Unassessed')}</strong> · Quarantine: ${h(r.quarantined)}</p><p>${h(a?.rule?.immediateAction ?? a?.reason)}</p><p>Serial: ${h(r.serial)} · Model: ${h(r.model)} · Case inventory ID: ${h(r.id)}</p><h3>Field-by-field decision</h3><table><thead><tr><th>Criterion</th><th>Inventory value</th><th>Requirement</th><th>Result</th><th>Exact evidence</th></tr></thead><tbody>${a?.trace.map((t) => `<tr><td>${h(t.field)}</td><td>${h(t.inventoryValue ?? 'Missing')}</td><td>${h(t.requirement)}</td><td>${h(t.outcome)}</td><td>${h(t.evidence)}</td></tr>`).join('') ?? ''}</tbody></table><h3>Source record</h3><p>${h(a?.label)} · Retrieved ${h(source?.retrievedAt)} · Version ${h(s?.id)}</p><p><a href="${h(a?.sourceUrl?.startsWith('https:') ? a.sourceUrl : '')}">${h(a?.sourceUrl)}</a></p><p>Supporting source: <a href="https://iniushop.com/pages/recall-b41">INIU recall notice</a></p><code>SHA-256 ${h(s?.content_hash)}</code><h3>Hazard and remedy</h3><p>${h(a?.rule?.hazard)}</p><p>${h(a?.rule?.remedy)}</p><p>${h(a?.rule?.contact)}</p><p>Claim link: ${h(a?.rule?.claimUrl)}</p><h3>Proof checklist</h3><ul>${a?.rule?.proof.map((p) => `<li>${h(p)}</li>`).join('') ?? ''}</ul><h3>Suggested customer message — draft</h3><blockquote>Our records identify your ${h(r.title)} (${h(r.assetTag)}) for recall review. Please stop using an affected unit and follow the official notice. We can help you collect the product and purchase details required to verify the manufacturer's remedy.</blockquote><h3>Audit timeline</h3><ul>${audit
-            .filter((e) => e.entity_id === r.id)
+          return `<article><h2>${h(r.assetTag)} · ${h(r.title)}</h2><p><strong>${h(a?.status ?? 'Unassessed')}</strong> · Quarantine: ${h(r.quarantined)}</p><p>${h(a?.rule?.immediateAction ?? a?.reason)}</p><p>Serial: ${h(r.serial)} · Model: ${h(r.model)} · Case inventory ID: ${h(r.id)}</p><h3>Field-by-field decision</h3><table><thead><tr><th>Criterion</th><th>Inventory value</th><th>Requirement</th><th>Result</th><th>Exact evidence</th></tr></thead><tbody>${a?.trace.map((t) => `<tr><td>${h(t.field)}</td><td>${h(t.inventoryValue ?? 'Missing')}</td><td>${h(t.requirement)}</td><td>${h(t.outcome)}</td><td>${h(t.evidence)}</td></tr>`).join('') ?? ''}</tbody></table><h3>Source record</h3><p>${h(a?.label)} · Retrieved ${h(source?.retrievedAt)} · Version ${h(s?.id)}</p><p><a href="${h(a?.sourceUrl?.startsWith('https:') ? a.sourceUrl : '')}">${h(a?.sourceUrl)}</a></p>${
+            Array.isArray(source?.supportingUrls)
+              ? source.supportingUrls
+                  .filter(
+                    (link: unknown): link is string =>
+                      typeof link === 'string' && link.startsWith('https://'),
+                  )
+                  .map(
+                    (link: string) =>
+                      `<p>Supporting source: <a href="${h(link)}">${h(link)}</a></p>`,
+                  )
+                  .join('')
+              : ''
+          }<code>SHA-256 ${h(s?.content_hash)}</code><h3>Hazard and remedy</h3><p>${h(a?.rule?.hazard)}</p><p>${h(a?.rule?.remedy)}</p><p>${h(a?.rule?.contact)}</p><p>Claim link: ${h(a?.rule?.claimUrl)}</p><h3>Proof checklist</h3><ul>${a?.rule?.proof.map((p) => `<li>${h(p)}</li>`).join('') ?? ''}</ul><h3>Suggested customer message — draft</h3><blockquote>Our records identify your ${h(r.title)} (${h(r.assetTag)}) for recall review. Please stop using an affected unit and follow the official notice. We can help you collect the product and purchase details required to verify the manufacturer's remedy.</blockquote><h3>Audit timeline</h3><ul>${audit
+            .filter(
+              (e) =>
+                e.entity_id === r.id ||
+                e.entity_id === cases.find((c) => c.item_id === r.id)?.id,
+            )
             .map((e) => `<li>${h(e.created_at)} · ${h(e.event_type)}</li>`)
             .join('')}</ul></article>`;
         })

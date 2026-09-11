@@ -6,7 +6,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   use: {
-    baseURL: process.env.RECALLOPS_URL || 'http://localhost:3001',
+    baseURL: process.env.RECALLOPS_URL || 'http://localhost:3002',
     browserName: 'chromium',
     headless: true,
     viewport: { width: 1440, height: 1000 },

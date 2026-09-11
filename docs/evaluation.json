@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-09-11T03:51:26.912Z",
+  "measuredAt": "2026-09-11T14:26:05.832Z",
   "dataset": "Curated official INIU conditions plus synthetic operator cases, CONTROLLED_DEMO_FIXTURE",
   "combinations": 45,
   "correct": 45,
@@ -8,8 +8,8 @@
   "falsePositiveCount": 0,
   "falseNegativeCount": 0,
   "needsReviewRate": 0.37777777777777777,
-  "averageMatchingRuntimeMs": 0.04123517777777831,
-  "totalMatchingRuntimeMs": 1.8555830000000242,
+  "averageMatchingRuntimeMs": 0.048168511111110646,
+  "totalMatchingRuntimeMs": 2.167582999999979,
   "fixtureExtractionSchemaValidity": {
     "tested": 1,
     "valid": 1

@@ -8,7 +8,9 @@ Public recall feeds identify candidates. Manufacturer notices add eligibility an
 
 **Current release:** functional local hackathon application with a verified controlled demo and real server-side Anakin Search, Scraper, Wire and paused-monitor calls. Signed external webhook delivery and public deployment remain unverified. See [release verification](docs/RELEASE-VERIFICATION.md) and [limitations](#limitations).
 
-![Verified live assessment screen](docs/screenshots/live-assessment-desktop.png)
+![Workspace overview from preserved local records](docs/screenshots/workspace-overview.png)
+
+The workspace opens on current inventory totals, an attention queue, assessment coverage, recent evidence and provider calls. Click a total to filter inventory, search across unit identifiers, or open a case. Case and evidence links survive reloads and browser navigation. Mobile views use unit cards and expandable evidence checks; task drafts detect concurrent edits before saving. See the [UI verification report](docs/UI-VERIFICATION.md).
 
 ## Quick start
 
@@ -50,12 +52,12 @@ See [DEMO.md](DEMO.md) for expected results and provenance.
 
 All provider credentials and calls stay on the server. The application does not silently fall back to direct scraping.
 
-| Product | App responsibility | Current verification |
-| --- | --- | --- |
-| Search | Discover relevant official URLs from product identity | Real application Search succeeded; provider IDs recorded |
-| URL Scraper | Preserve markdown and extract schema-bound recall rules through an async job | Real async retrieval and structured extraction succeeded for CPSC and INIU; local schema and grounding checks apply |
-| Wire | Discover Amazon `am_product_details` as a read action, retrieve listing data, record supported returned fields and their paths | Real Amazon action enriched a separately identified sample with four returned fields; no serial inferred |
-| Monitoring | Create paused monitors, show real IDs/state, run checks, validate signed events, preserve versions and rerun matching | Actual paused monitor and queued Run now verified; independent source reassessment succeeded; signed external delivery unverified |
+| Product     | App responsibility                                                                                                             | Current verification                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Search      | Discover relevant official URLs from product identity                                                                          | Real application Search succeeded; provider IDs recorded                                                                          |
+| URL Scraper | Preserve markdown and extract schema-bound recall rules through an async job                                                   | Real async retrieval and structured extraction succeeded for CPSC and INIU; local schema and grounding checks apply               |
+| Wire        | Discover Amazon `am_product_details` as a read action, retrieve listing data, record supported returned fields and their paths | Real Amazon action enriched a separately identified sample with four returned fields; no serial inferred                          |
+| Monitoring  | Create paused monitors, show real IDs/state, run checks, validate signed events, preserve versions and rerun matching          | Actual paused monitor and queued Run now verified; independent source reassessment succeeded; signed external delivery unverified |
 
 September 10–11 application REST verification is recorded in [live verification](docs/live-verification.json). Earlier September 9 connected-tool preflight is kept separately. Details of the live response formats and conservative validation are in [docs/ANAKIN-CONTRACT-NOTES.md](docs/ANAKIN-CONTRACT-NOTES.md).
 
@@ -67,11 +69,11 @@ cp .env.example .dev.vars
 
 Edit `.dev.vars` locally and set `ANAKIN_API_KEY` to your Anakin API key. Never paste a key into source, commit it, put it in a public environment variable, or enter it into an inventory field. Restart the development server.
 
-| Variable | Use |
-| --- | --- |
-| `ANAKIN_API_KEY` | Server-side `X-API-Key` header for Anakin REST requests |
+| Variable          | Use                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| `ANAKIN_API_KEY`  | Server-side `X-API-Key` header for Anakin REST requests                                                   |
 | `PUBLIC_BASE_URL` | Optional deployed HTTPS origin used to construct `/api/webhook`; localhost cannot receive public webhooks |
-| `OPERATOR_TOKEN` | Required to authorize non-local API access; entered into the app's Settings and held in tab memory |
+| `OPERATOR_TOKEN`  | Required to authorize non-local API access; entered into the app's Settings and held in tab memory        |
 
 Open **Investigation** and run a live investigation, then **Anakin health**. A successful row shows its real time, request count, provider job ID when available, cache state and any returned credit usage. Missing keys, failed jobs and timeouts are recorded as failures. A configured key alone is not a verified integration.
 
@@ -107,9 +109,14 @@ npm test
 npm run evaluate
 npm run build
 npx playwright install chromium
-# Start the development server in another terminal first.
-RECALLOPS_URL=http://localhost:3001 npm run test:e2e
+# In a separate terminal, start a test worker with an isolated database:
+npx wrangler d1 migrations apply DB --local --persist-to work/e2e-state
+npx wrangler dev --config dist/server/wrangler.json --persist-to work/e2e-state --port 3002 --inspector-port 9230
+# Then run browser tests from the first terminal:
+npm run test:e2e
 ```
+
+Browser tests default to port 3002 and modify controlled sample records. Keep the test worker's state separate from the normal `.wrangler/state` workspace. Stop the test worker before rebuilding, then restart it so its asset manifest matches the build.
 
 The evaluation contains **45** labeled controlled combinations, including positive/near matches, exclusions, missing values, conflicts, irrelevant notices, normalization and compound logic. [Measured results](docs/EVALUATION.md) are generated from actual execution, with every case in [evaluation.json](docs/evaluation.json). They do not measure live extraction accuracy, recall coverage or production reliability.
 
