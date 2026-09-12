@@ -1,15 +1,15 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { Store } from '../lib/server/store';
 export function testStore() {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec('PRAGMA foreign_keys=ON;');
-  sqlite.exec(
-    readFileSync(
-      new URL('../drizzle/0000_condemned_gauntlet.sql', import.meta.url),
-      'utf8',
-    ),
-  );
+  for (const file of readdirSync(new URL('../drizzle/', import.meta.url))
+    .filter((f) => f.endsWith('.sql'))
+    .sort())
+    sqlite.exec(
+      readFileSync(new URL('../drizzle/' + file, import.meta.url), 'utf8'),
+    );
   class Statement {
     args: unknown[] = [];
     constructor(public sql: string) {}

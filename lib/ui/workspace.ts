@@ -81,7 +81,12 @@ export type Monitor = {
   version?: string;
 };
 export type Data = {
-  demo: { sampleCount: number; subject: string; monitoringReady: boolean };
+  demo: {
+    enabled?: boolean;
+    sampleCount: number;
+    subject: string;
+    monitoringReady: boolean;
+  };
   inventory: Item[];
   tasks: Task[];
   sources: Source[];

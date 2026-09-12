@@ -1,3 +1,6 @@
+import { ZodError } from 'zod';
+import { readableError } from './errors';
+import { testFixturesEnabled } from '../core/runtime-policy';
 import { limitedText } from '../core/limits';
 import { getDb, config } from '../../db';
 import { Store } from './store';
@@ -18,7 +21,15 @@ export function context(req: Request) {
   if (origin && origin !== url.origin)
     throw Error('Cross-origin request rejected');
   const store = new Store(getDb());
-  return { store, workflow: new Workflow(store, env.ANAKIN_API_KEY), env };
+  return {
+    store,
+    workflow: new Workflow(
+      store,
+      env.ANAKIN_API_KEY,
+      testFixturesEnabled(env.ENABLE_TEST_FIXTURES),
+    ),
+    env,
+  };
 }
 export async function limited(store: Store, key: string, max = 10) {
   const window = Math.floor(Date.now() / 60000);
@@ -34,7 +45,10 @@ export async function readBody(req: Request, max = 300000) {
   return limitedText(req.body, max);
 }
 export function errorResponse(e: unknown) {
-  const message = e instanceof Error ? e.message : 'Request failed';
+  const message =
+    e instanceof ZodError
+      ? `Review the request fields: ${[...new Set(e.issues.map((issue) => issue.path.join('.') || 'input'))].slice(0, 6).join(', ')}.`
+      : readableError(e);
   return Response.json(
     { error: message.slice(0, 600) },
     {

@@ -1,4 +1,5 @@
-const base = process.env.RECALLOPS_URL || 'http://127.0.0.1:3000';
+if (process.env.ENABLE_TEST_FIXTURES !== 'true') throw Error('Seeding is available only for an explicitly isolated test workspace.');
+const base = process.env.RECALLOPS_URL || 'http://localhost:3002';
 const res = await fetch(base + '/api/workspace', {
   method: 'POST',
   headers: {

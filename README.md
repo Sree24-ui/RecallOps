@@ -1,106 +1,70 @@
 # RecallOps
 
-**An autonomous product-safety agent that prevents recalled products from being resold.**
+RecallOps helps electronics teams turn official recall evidence into decisions about individual physical units. Public recall notices describe products; your inventory supplies the actual serial number, variant and original purchase facts. Missing or conflicting facts stay in review.
 
-RecallOps helps small US electronics resellers, refurbishers, repair shops, charities and equipment teams evaluate individual inventory units against recall eligibility. A similar model name is not enough: the unit's serial, variant, original sale channel, purchase period and exclusions can change the result.
+[Open RecallOps](https://recallops-sree24.sreepad-1251070506.chatgpt.site) · [GitHub](https://github.com/Sree24-ui/RecallOps)
 
-Public recall feeds identify candidates. Manufacturer notices add eligibility and remedy details that a feed may omit. RecallOps preserves this evidence, evaluates structured rules deterministically, creates cases and staff tasks, and quarantines affected inventory internally.
+![Official CPSC recall catalogue](docs/screenshots/catalog-desktop.png)
 
-**Current release:** functional local hackathon application with a verified controlled demo and real server-side Anakin Search, Scraper, Wire and paused-monitor calls. Signed external webhook delivery and public deployment remain unverified. See [release verification](docs/RELEASE-VERIFICATION.md) and [limitations](#limitations).
+## What you can do
 
-![Workspace overview from preserved local records](docs/screenshots/workspace-overview.png)
+- Browse and search a dated selection of real CPSC electronics recall notices, expand their published descriptions and remedies, and open the original notice.
+- Open the protected operator workspace, download a blank CSV template, and import inventory you actually hold.
+- Investigate selected product groups through Anakin Search and URL Scraper. Preserve source text, retrieval times, hashes and extracted criteria.
+- Compare unit facts with evidence using a deterministic TypeScript matcher. Review affected, excluded, unresolved or no-notice results with an explanation.
+- Maintain internal holds and staff tasks, export action packets, and manually run paused official-source monitors.
 
-The workspace opens on current inventory totals, an attention queue, assessment coverage, recent evidence and provider calls. Click a total to filter inventory, search across unit identifiers, or open a case. Case and evidence links survive reloads and browser navigation. Mobile views use unit cards and expandable evidence checks; task drafts detect concurrent edits before saving. See the [UI verification report](docs/UI-VERIFICATION.md).
+Public catalogue requests neither read the inventory database nor call paid providers. Remote inventory, task, export and mutation APIs require an operator token. Enter it in Workspace → Settings; it stays in the tab's memory. This is a single-operator prototype, not a multi-tenant service.
 
-## Quick start
+## Real data and its limits
 
-Requirements: Node.js **24**, npm, and a local terminal. No paid database is needed.
+`data/official-recalls.json` contains five records fetched directly from the [CPSC public recall API](https://www.cpsc.gov/Recalls/CPSC-Recalls-Application-Program-Interface-API-Information), including each API request URL and retrieval timestamp. The [official Data.gov listing](https://catalog.data.gov/dataset/recalls-api) identifies this as public data. The selection covers BenQ, INIU, Anker, Baseus and Belkin; it is a dated snapshot, not a complete or continuously refreshed recall feed.
+
+Refresh selected notices using documented CPSC recall numbers without hyphens:
+
+```sh
+npm run catalog:refresh -- 26647 26135 25338 25248 25061
+```
+
+The refresh rejects ambiguous records and non-notice URLs, then writes the actual returned fields. It creates no physical inventory. Update and rebuild the site to publish a newer snapshot.
+
+The normal workspace starts empty. The prior local demonstration units have been archived with audit history preserved. Synthetic cases remain only as explicit regression-test fixtures, disabled in normal and hosted execution. The normal CSV download contains headers only. No fake serial, customer, purchase or inventory count is inferred from public data.
+
+## Run locally
+
+Requires Node.js 24 and npm.
 
 ```sh
 git clone https://github.com/Sree24-ui/RecallOps.git
 cd RecallOps
 npm ci
 npm run db:migrate
-npm run dev -- --host 127.0.0.1 --port 3001
-```
-
-Open the Local URL printed by the server, normally `http://localhost:3001`. If that port is occupied, follow the URL actually printed. Database migrations must run before using the API. The local D1 emulator persists SQLite data under ignored `.wrangler/state/`; data survives normal server restarts.
-
-Click **Run RecallOps Judge Demo**. The application loads 24 sample units and runs the real matcher and persistence workflow against clearly labeled recorded/synthetic evidence. No API key is needed for this controlled path.
-
-Optional CLI seed against the running server:
-
-```sh
-RECALLOPS_URL=http://localhost:3001 npm run seed
-```
-
-The seed is idempotent for unchanged inventory. It never silently overwrites different values under an existing asset tag.
-
-Open `RecallOps.code-workspace` in a compatible editor to use the repository as a workspace.
-
-## The three-minute demo
-
-1. Run the Judge Demo and inspect `INIU-001`: all seven evaluated fields are resolved, assessment is `affected`, and the quarantine is persisted.
-2. Open Inventory → `INIU-002`: serial `000J21` is excluded. `INIU-003` lacks its serial and needs review. `INIU-004` is excluded because its original seller is Woot.
-3. Download the case's HTML action packet. In Quarantine & actions, download the hold list and inspect the staff tasks.
-4. Open Monitoring → **Run controlled change A → B**. `MON-001` changes from `excluded_by_notice` to `needs_review` because the new batch requirement is missing.
-5. Open Anakin health to distinguish actual app calls from a fixture-only run.
-
-See [DEMO.md](DEMO.md) for expected results and provenance.
-
-## Anakin is the live intelligence layer
-
-All provider credentials and calls stay on the server. The application does not silently fall back to direct scraping.
-
-| Product     | App responsibility                                                                                                             | Current verification                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Search      | Discover relevant official URLs from product identity                                                                          | Real application Search succeeded; provider IDs recorded                                                                          |
-| URL Scraper | Preserve markdown and extract schema-bound recall rules through an async job                                                   | Real async retrieval and structured extraction succeeded for CPSC and INIU; local schema and grounding checks apply               |
-| Wire        | Discover Amazon `am_product_details` as a read action, retrieve listing data, record supported returned fields and their paths | Real Amazon action enriched a separately identified sample with four returned fields; no serial inferred                          |
-| Monitoring  | Create paused monitors, show real IDs/state, run checks, validate signed events, preserve versions and rerun matching          | Actual paused monitor and queued Run now verified; independent source reassessment succeeded; signed external delivery unverified |
-
-September 10–11 application REST verification is recorded in [live verification](docs/live-verification.json). Earlier September 9 connected-tool preflight is kept separately. Details of the live response formats and conservative validation are in [docs/ANAKIN-CONTRACT-NOTES.md](docs/ANAKIN-CONTRACT-NOTES.md).
-
-### Configure live execution
-
-```sh
 cp .env.example .dev.vars
+npm run dev -- --port 3001
 ```
 
-Edit `.dev.vars` locally and set `ANAKIN_API_KEY` to your Anakin API key. Never paste a key into source, commit it, put it in a public environment variable, or enter it into an inventory field. Restart the development server.
+Open the URL printed by the server. `/` is the official catalogue; `/workspace` is the operator interface. SQLite data persists in the ignored `.wrangler/state` directory. Open `RecallOps.code-workspace` in a compatible editor to use the project workspace.
 
-| Variable          | Use                                                                                                       |
-| ----------------- | --------------------------------------------------------------------------------------------------------- |
-| `ANAKIN_API_KEY`  | Server-side `X-API-Key` header for Anakin REST requests                                                   |
-| `PUBLIC_BASE_URL` | Optional deployed HTTPS origin used to construct `/api/webhook`; localhost cannot receive public webhooks |
-| `OPERATOR_TOKEN`  | Required to authorize non-local API access; entered into the app's Settings and held in tab memory        |
+Set `ANAKIN_API_KEY` in the ignored `.dev.vars` file for live investigations, then restart. The catalogue needs no key. Keep `ENABLE_TEST_FIXTURES=false` for normal use.
 
-Open **Investigation** and run a live investigation, then **Anakin health**. A successful row shows its real time, request count, provider job ID when available, cache state and any returned credit usage. Missing keys, failed jobs and timeouts are recorded as failures. A configured key alone is not a verified integration.
+| Configuration | Purpose |
+| --- | --- |
+| `ANAKIN_API_KEY` | Server-side Anakin REST credential |
+| `OPERATOR_TOKEN` | Required bearer token for remote operator APIs |
+| `PUBLIC_BASE_URL` | Actual deployed HTTPS origin for monitor callbacks |
+| `ENABLE_TEST_FIXTURES` | Explicit isolated-test opt-in; false in production |
 
-The gated test reads credentials from environment variables without printing them:
+## How it runs
 
-```sh
-RUN_LIVE_ANAKIN=1 node --env-file=.dev.vars --import tsx --test tests/live.test.ts
-```
+React 19 renders the responsive interface. TypeScript runs both UI and deterministic eligibility rules. Vinext/Vite builds the React application into a Cloudflare Worker; Cloudflare D1 stores inventory, source versions, assessments, tasks and append-only audits. Drizzle generates schema migrations. Sites supplies the hosted Worker and D1 bindings.
 
-This command loads the ignored local `.dev.vars` file into the test process without putting the key in command-line arguments.
+Anakin Search discovers candidate pages. URL Scraper retrieves source text and proposes structured criteria, which must pass schema and evidence-grounding checks. Wire can enrich a user-selected Amazon listing without inventing physical serials. Monitoring can create a paused subscription and request checks. Anakin does not make the final eligibility decision.
 
-## Matching and actions
+The live workflow permits specific CPSC recall notices and approved INIU manufacturer sources, with eight product groups and two source documents per group. These limits and approved hosts are explicit policy configuration in `lib/core/runtime-policy.ts`. Deferred groups keep their existing assessments. Candidate notice links are traceable to `data/source-links.json`; they are freshly retrieved, not used as automatic eligibility answers.
 
-The only assessment states are:
+The narrowly scoped INIU linked-notice reconciliation is a documented safety rule. It requires identical shared predicates and preserves manufacturer exclusions; other conflicting logic needs review. Removing this evidence rule as if it were a fake value would weaken matching safety.
 
-- `affected`: all inclusion conditions match and no explicit exclusion applies.
-- `excluded_by_notice`: at least one required condition contradicts the record or a complete exclusion applies.
-- `needs_review`: missing/unsupported facts, incomplete investigation or conflicting/ambiguous evidence.
-- `no_relevant_notice_found`: no applicable notice in the declared completed scope. **This never means safe.**
-
-The LLM extracts data only. TypeScript evaluates the condition tree and generates the explanation from the evaluation trace. Date ranges preserve day/month precision; serials retain leading zeros and meaningful characters. Source differences that cannot be reconciled conservatively go to review. One narrowly scoped reconciliation accepts the linked official INIU manufacturer rule only when it contains every identical CPSC inclusion predicate, preserves all manufacturer exclusions, and has no unresolved criteria; other differing logic requires review.
-
-Affected assessments automatically create internal quarantine records. Reassessment and acknowledgment never silently release a hold. Approved-for-sale CSV exports require a non-quarantined, acknowledged record whose latest assessment is excluded or no-notice. This export is an operator workflow filter, not regulatory approval.
-
-Action packets are printable HTML, with criteria, original values, source excerpts, hashes, timestamps, remedy information and a case timeline. CSV hold/customer lists and JSON records are also available. No real messages, claims, purchases or disposal confirmations are submitted.
-
-## Tests and measured evaluation
+## Validation
 
 ```sh
 npm run typecheck
@@ -108,50 +72,29 @@ npm run lint
 npm test
 npm run evaluate
 npm run build
-npx playwright install chromium
-# In a separate terminal, start a test worker with an isolated database:
+```
+
+Browser regressions use a separate database and explicit fixture mode:
+
+```sh
 npx wrangler d1 migrations apply DB --local --persist-to work/e2e-state
-npx wrangler dev --config dist/server/wrangler.json --persist-to work/e2e-state --port 3002 --inspector-port 9230
-# Then run browser tests from the first terminal:
+npx wrangler dev --config dist/server/wrangler.json --persist-to work/e2e-state --port 3002 --inspector-port 9230 --var ENABLE_TEST_FIXTURES:true
+# In another terminal:
 npm run test:e2e
 ```
 
-Browser tests default to port 3002 and modify controlled sample records. Keep the test worker's state separate from the normal `.wrangler/state` workspace. Stop the test worker before rebuilding, then restart it so its asset manifest matches the build.
+Tests include raw source validation failures, deferred scans, archived inventory, test-mode isolation, public data provenance, imports, source grounding, task conflicts, signature validation and browser interactions. Controlled matcher evaluations are not claims of live extraction accuracy. The live integration test is credential-gated and makes paid provider requests only when explicitly run.
 
-The evaluation contains **45** labeled controlled combinations, including positive/near matches, exclusions, missing values, conflicts, irrelevant notices, normalization and compound logic. [Measured results](docs/EVALUATION.md) are generated from actual execution, with every case in [evaluation.json](docs/evaluation.json). They do not measure live extraction accuracy, recall coverage or production reliability.
+## Deployment and submission
 
-A [GitHub Actions template](docs/github-checks.yml) runs the same local checks. It is not active: the current GitHub sign-in lacks the `workflow` scope. See [activation instructions](docs/DEPLOYMENT.md#github-checks).
+The hosting manifest contains logical D1 binding metadata and a Site project ID. Secrets are configured through hosting environment settings, never committed. `npm run build` removes development environment files generated by the build tool before packaging. Only schema migrations are deployed; no local database or test inventory is uploaded.
 
-Lint covers application, database, scripts and tests. Unmodified vendored UI primitives and the starter mobile hook are excluded from lint because the generated starter produces rule errors there; TypeScript still checks them. No application correctness rules are disabled to obtain a pass.
+See [submission answers](SUBMISSION.md) and [demo walkthrough](DEMO.md). The separate submission ZIP includes the captioned WebM video, screenshots, copy-ready answers and a clean source archive. Video upload, social posting, the GitHub star screenshot and the final form submission are separate user actions.
 
-## Architecture and data
+## Boundaries
 
-React/Vinext renders the interface; route handlers run in a Cloudflare-compatible server environment. D1/SQLite stores organizations, a local operator, inventory/imports, sales, source documents/versions, rules/conditions, assessments/evidence, cases/tasks, quarantine actions, monitors/events, integration runs and audit events. An additional rate-limit table bounds expensive operations. Prepared statements and transactional batches protect database updates. Audit events have database-level update/delete rejection triggers.
+“No relevant notice found” does not establish safety. Holds are internal inventory actions and are never silently released by acknowledgement or reassessment. No claim, customer message, purchase or disposal confirmation is submitted automatically. Source retrieval can fail; rejected extractions preserve the fetched evidence and remain review cases. Scheduled monitor activation and end-to-end signed external webhook delivery have not been verified.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), and [deployment and migration instructions](docs/DEPLOYMENT.md).
+Historical Anakin verification used clearly labelled sample physical units and real provider calls; those observations remain documented in `docs/live-verification.json` and are not represented as real customer inventory or current production outcomes.
 
-## Limitations
-
-- No existing RecallGuard source was supplied; this is a new implementation, with no claim of migrating a previous prototype.
-- The live source allowlist currently covers CPSC and INIU. A general CPSC data-feed importer and additional manufacturer catalogs are not implemented.
-- Judge Mode is controlled replay; unrelated samples are checked only against the demo notices. Controlled runtime data never counts as a live Anakin success.
-- Successful live extraction and Wire calls establish observed compatibility, not extraction accuracy across arbitrary notices. Signed external webhook delivery, completed provider monitor checks and production deployment remain unverified; Run now is reported as queued until provider evidence confirms completion.
-- Extracted identifier operands must match complete source tokens; dates must be supported by exact ISO or recognized English month/day evidence. Unsupported date formats and natural-language boolean conditions require review.
-- Exact quotations establish traceability, not semantic truth. The current extraction checks cannot prove that an LLM found every relevant clause. Review the source and rule before relying on a business decision; multi-source differences are handled conservatively.
-- Live requests process at most eight product groups per run; the Investigation selector can target another group explicitly. Longer investigations and a production durable job queue need additional work. Monitors start paused to avoid unrequested recurring consumption; activate schedules in Anakin after reviewing cost and configuration.
-- Webhooks persist events before background processing. Failed jobs can be retried in Monitoring, with three attempts. A host termination during processing can require operator recovery; this is not a production queue guarantee.
-- Local single-operator mode only. The remote bearer-token gate is not multi-user authentication or tenant isolation. The server should remain local until deployment hardening is completed.
-- No automatic quarantine release, automatic external claims, customer messaging or legal/compliance certification.
-
-## Troubleshooting
-
-- **No such table:** run `npm run db:migrate` from the repository, then restart.
-- **Port in use:** choose a free local port and set `RECALLOPS_URL` for seed/E2E commands.
-- **Missing Anakin key:** set it in ignored `.dev.vars`, restart, and inspect Anakin health.
-- **401 remotely:** configure `OPERATOR_TOKEN` server-side and enter it in Settings. API credentials do not belong in browser code.
-- **Extraction rejected:** inspect source and error details. Do not substitute a fixture and label it live.
-- **429 or deadline:** wait before retrying. Submission requests are not blindly retried because the provider does not promise idempotency.
-- **Conflicting asset tag:** resolve identity first; the importer deliberately prevents overwriting a physical-unit record.
-- **Webhook not arriving:** a real public HTTPS receiver and the monitor-specific secret are required. Local controlled monitoring remains available.
-
-Owner and commit author: [Sree24-ui](https://github.com/Sree24-ui). Submission draft: [SUBMISSION.md](SUBMISSION.md).
+Built and committed by **Sree24-ui**, the sole repository contributor.

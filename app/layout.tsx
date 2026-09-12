@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'RecallOps — Evidence before resale',
   description:
-    'An autonomous product-safety agent that prevents recalled products from being resold. Evidence-backed recall investigations for electronics inventory.',
+    'Official US recall notices and evidence-backed investigations for your electronics inventory.',
 };
 export default function RootLayout({
   children,

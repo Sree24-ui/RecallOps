@@ -1,3 +1,7 @@
+import {
+  coverageDescription,
+  testFixturesEnabled,
+} from '@/lib/core/runtime-policy';
 import { z } from 'zod';
 import {
   context,
@@ -14,7 +18,7 @@ import { inventorySchema, type Inventory } from '../../../lib/core/rules';
 import { normalizeEnrichment } from '../../../lib/core/enrichment';
 import { MAX_CSV_BYTES, parseCsv } from '../../../lib/core/csv';
 import {
-  safeUrl,
+  recallNoticeUrl,
   publicProviderData,
   sha256,
 } from '../../../lib/server/security';
@@ -68,12 +72,16 @@ export async function GET(req: Request) {
       audit,
       imports,
     ] = await Promise.all([
-      store.all('SELECT * FROM inventory_items ORDER BY asset_tag'),
+      store.all(
+        'SELECT * FROM inventory_items WHERE archived=0 ORDER BY asset_tag',
+      ),
       store.all(
         'SELECT * FROM assessments ORDER BY created_at DESC,rowid DESC',
       ),
       store.all('SELECT * FROM cases'),
-      store.all('SELECT * FROM case_tasks ORDER BY created_at DESC'),
+      store.all(
+        'SELECT * FROM case_tasks WHERE case_id IN (SELECT id FROM cases WHERE item_id IN (SELECT id FROM inventory_items WHERE archived=0)) ORDER BY created_at DESC',
+      ),
       store.all('SELECT * FROM source_versions ORDER BY created_at DESC'),
       store.all('SELECT * FROM monitor_subscriptions'),
       store.all(
@@ -92,6 +100,7 @@ export async function GET(req: Request) {
     return Response.json(
       {
         demo: {
+          enabled: testFixturesEnabled(env.ENABLE_TEST_FIXTURES),
           sampleCount: demoInventory.length,
           subject: [iniuRule.brand, ...iniuRule.models].join(' '),
           monitoringReady: monitors.some(
@@ -121,28 +130,46 @@ export async function GET(req: Request) {
             revision: await sha256(String(r.payload) + String(r.status)),
           })),
         ),
-        sources: sources.map((r) => ({
-          id: r.id,
-          contentHash: r.content_hash,
-          createdAt: r.created_at,
-          ...payload(r),
-        })),
-        monitors: monitors.map((r) => {
-          const p = payload(r);
-          delete p.webhookSecret;
-          return {
+        sources: sources
+          .filter(
+            (r) =>
+              testFixturesEnabled(env.ENABLE_TEST_FIXTURES) ||
+              payload(r).label !== 'CONTROLLED_DEMO_FIXTURE',
+          )
+          .map((r) => ({
             id: r.id,
-            url: r.url,
-            providerId: r.provider_id,
-            ...(publicProviderData(p) as Record<string, unknown>),
-          };
-        }),
-        events: events.map((r) => ({
-          id: r.id,
-          status: r.status,
-          createdAt: r.created_at,
-          ...payload(r),
-        })),
+            contentHash: r.content_hash,
+            createdAt: r.created_at,
+            ...payload(r),
+          })),
+        monitors: monitors
+          .filter(
+            (r) =>
+              testFixturesEnabled(env.ENABLE_TEST_FIXTURES) ||
+              payload(r).label !== 'CONTROLLED_DEMO_FIXTURE',
+          )
+          .map((r) => {
+            const p = payload(r);
+            delete p.webhookSecret;
+            return {
+              id: r.id,
+              url: r.url,
+              providerId: r.provider_id,
+              ...(publicProviderData(p) as Record<string, unknown>),
+            };
+          }),
+        events: events
+          .filter(
+            (r) =>
+              testFixturesEnabled(env.ENABLE_TEST_FIXTURES) ||
+              payload(r).label !== 'CONTROLLED_DEMO_FIXTURE',
+          )
+          .map((r) => ({
+            id: r.id,
+            status: r.status,
+            createdAt: r.created_at,
+            ...payload(r),
+          })),
         runs: runs.map((r) => ({ id: r.id, ...payload(r) })),
         audit: audit.map((r) => ({
           id: r.id,
@@ -159,9 +186,8 @@ export async function GET(req: Request) {
         health: {
           keyConfigured: !!env.ANAKIN_API_KEY,
           webhookConfigured: !!env.PUBLIC_BASE_URL,
-          mode: 'local_single_operator',
-          coverage:
-            'Approved official domains: CPSC and INIU. Judge Mode uses controlled recordings.',
+          mode: 'single_operator',
+          coverage: coverageDescription,
         },
       },
       { headers: { 'Cache-Control': 'no-store' } },
@@ -203,7 +229,7 @@ export async function POST(req: Request) {
         );
       case 'acknowledge': {
         const item = await store.first(
-          'SELECT * FROM inventory_items WHERE id=?',
+          'SELECT * FROM inventory_items WHERE id=? AND archived=0',
           [body.itemId],
         );
         if (!item) throw Error('Inventory item not found');
@@ -280,7 +306,7 @@ export async function POST(req: Request) {
       }
       case 'wire': {
         const item = await store.first(
-          'SELECT * FROM inventory_items WHERE id=?',
+          'SELECT * FROM inventory_items WHERE id=? AND archived=0',
           [body.itemId],
         );
         if (!item) throw Error('Inventory not found');
@@ -304,7 +330,7 @@ export async function POST(req: Request) {
         });
       }
       case 'monitor_create': {
-        safeUrl(body.url);
+        recallNoticeUrl(body.url);
         if (
           await store.first('SELECT * FROM monitor_subscriptions WHERE url=?', [
             body.url,

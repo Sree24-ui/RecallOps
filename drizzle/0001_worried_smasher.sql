@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_items` ADD `archived` integer DEFAULT 0 NOT NULL;

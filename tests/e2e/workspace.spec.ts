@@ -24,7 +24,7 @@ test('slow background polling still delivers data during an action', async ({
     }
   });
   try {
-    await page.goto('/');
+    await page.goto('/workspace');
     await page
       .getByRole('button', { name: 'Run RecallOps Judge Demo', exact: true })
       .click();
@@ -44,7 +44,7 @@ test('live totals filter inventory and no-match state recovers', async ({
   page,
 }) => {
   const state: Data = await (await page.request.get('/api/workspace')).json();
-  await page.goto('/');
+  await page.goto('/workspace');
   await expect(
     page.getByRole('button', {
       name: `Inventory units: ${state.inventory.length}`,
@@ -88,7 +88,7 @@ test('case and source survive reload and browser back; skip link preserves conte
 }) => {
   const state: Data = await (await page.request.get('/api/workspace')).json();
   const item = state.inventory.find((x) => x.assessment?.versionId)!;
-  await page.goto(`/#view=case&item=${item.id}`);
+  await page.goto(`/workspace#view=case&item=${item.id}`);
   await expect(
     page.getByRole('heading', { name: item.title, exact: true }),
   ).toBeVisible();
@@ -121,7 +121,7 @@ test('mobile case uses readable criteria cards and announces safety state', asyn
     (x) => x.assessment?.status === 'affected',
   )!;
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#view=inventory');
+  await page.goto('/workspace#view=inventory');
   const unit = page.getByRole('button', { name: item.assetTag, exact: true });
   await expect(unit).toHaveAccessibleDescription(/Affected.*Quarantined/);
   await unit.click();
@@ -167,7 +167,7 @@ test('CSV review freezes edits and imports the reviewed content', async ({
     }
     await route.continue();
   });
-  await page.goto('/#view=import');
+  await page.goto('/workspace#view=import');
   const csv = page.getByLabel('Or paste CSV');
   await csv.fill('assetTag,title\nREVIEWED-UNIT,USB adapter');
   await page
@@ -189,7 +189,7 @@ test('task conflicts retain the local draft, reject stale writes and export the 
   const task = state.tasks[0];
   expect(task).toBeTruthy();
   const item = state.inventory.find((x) => x.caseId === task.caseId)!;
-  await page.goto('/#view=actions');
+  await page.goto('/workspace#view=actions');
   const row = page
     .locator('.task-row')
     .filter({
@@ -262,7 +262,7 @@ test('confirmed task save stays successful when the follow-up refresh fails', as
       });
     else await route.continue();
   });
-  await page.goto('/#view=actions');
+  await page.goto('/workspace#view=actions');
   const row = page.locator('.task-row').nth(1);
   const owner = row.getByRole('textbox', {
     name: `Owner for ${task.title}`,
@@ -322,7 +322,7 @@ test('loading and failed refresh do not present invented workspace data', async 
       });
     else await route.continue();
   });
-  await page.goto('/');
+  await page.goto('/workspace');
   await expect(
     page.getByText('● Anakin connecting…', { exact: true }),
   ).toBeVisible();

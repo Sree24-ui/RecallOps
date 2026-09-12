@@ -19,7 +19,8 @@
     "db:migrate": "wrangler d1 migrations apply DB --local",
     "seed": "node scripts/seed.mjs",
     "test:e2e": "playwright test",
-    "test:live": "node --import tsx --test tests/live.test.ts"
+    "test:live": "node --import tsx --test tests/live.test.ts",
+    "catalog:refresh": "node scripts/refresh-catalog.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

@@ -1,3 +1,5 @@
+> Historical verification before the September 12 real-data release. Sample units shown here were test records and are now archived. See README.md for current normal behavior.
+
 # Frontend verification — September 11–12, 2026
 
 RecallOps now opens on an operational overview backed by the workspace API. Totals, assessment coverage, attention records, open tasks, provider activity and evidence are derived from persisted records. No synthetic chart data or fabricated provider success is displayed.

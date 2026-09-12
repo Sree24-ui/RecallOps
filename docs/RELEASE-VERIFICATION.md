@@ -1,3 +1,5 @@
+> Historical verification before the September 12 real-data release. Sample units shown here were test records and are now archived. See README.md for current normal behavior.
+
 # RecallOps release verification
 
 Verified September 11, 2026. Private repository: [Sree24-ui/RecallOps](https://github.com/Sree24-ui/RecallOps). Owner and authored commit identity: `Sree24-ui <245315421+Sree24-ui@users.noreply.github.com>`.

@@ -11,7 +11,7 @@ export async function GET(req: Request) {
       type = url.searchParams.get('type') ?? 'holds',
       itemId = url.searchParams.get('itemId');
     const items = await store.all(
-        'SELECT * FROM inventory_items ORDER BY asset_tag',
+        'SELECT * FROM inventory_items WHERE archived=0 ORDER BY asset_tag',
       ),
       assessments = await store.all(
         'SELECT * FROM assessments ORDER BY created_at DESC,rowid DESC',

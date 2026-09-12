@@ -32,6 +32,7 @@ export const inventoryItems = sqliteTable(
       .references(() => organizations.id),
     assetTag: text('asset_tag').notNull(),
     quarantined: integer('quarantined').notNull().default(0),
+    archived: integer('archived').notNull().default(0),
   },
   (t) => [uniqueIndex('inventory_org_asset').on(t.orgId, t.assetTag)],
 );

@@ -1,10 +1,6 @@
 import { displayString } from '../core/text';
-export const sourceHosts = [
-  'www.cpsc.gov',
-  'cpsc.gov',
-  'iniushop.com',
-  'b41recall.iniushop.com',
-];
+import { approvedSourceHosts } from '../core/runtime-policy';
+export const sourceHosts: string[] = [...approvedSourceHosts];
 export function safeUrl(raw: string, hosts = sourceHosts): string {
   const u = new URL(raw);
   if (
@@ -17,6 +13,17 @@ export function safeUrl(raw: string, hosts = sourceHosts): string {
     throw Error('URL must use HTTPS on an approved official source domain');
   u.hash = '';
   return u.toString();
+}
+export function recallNoticeUrl(raw: string): string {
+  const url = new URL(safeUrl(raw));
+  if (
+    (url.hostname === 'cpsc.gov' || url.hostname === 'www.cpsc.gov') &&
+    !/^\/Recalls\/\d{4}\/[^/]+\/?$/.test(url.pathname)
+  )
+    throw Error(
+      'Choose a specific recall notice, not a category or search page.',
+    );
+  return url.toString();
 }
 export const escapeHtml = (s: unknown) =>
   displayString(s).replace(

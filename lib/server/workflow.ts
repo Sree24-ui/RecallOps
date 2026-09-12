@@ -1,3 +1,6 @@
+import sourceLinks from '../../data/source-links.json';
+import { investigationLimits } from '../core/runtime-policy';
+import { readableError } from './errors';
 import { Store, id, now, payload, type Row } from './store';
 import { z } from 'zod';
 import {
@@ -15,18 +18,22 @@ import {
   type Condition,
   type Logic,
 } from '../core/rules';
-import { sha256, safeUrl, publicProviderData } from './security';
+import {
+  sha256,
+  safeUrl,
+  recallNoticeUrl,
+  publicProviderData,
+} from './security';
 import { Anakin } from './anakin';
 import {
   demoInventory,
   fixtureMarkdown,
   iniuRule,
-  officialUrl,
-  manufacturerUrl,
   monitoringRule,
   monitoringTextA,
   monitoringTextB,
 } from '../../fixtures/demo';
+const { noticeUrl: officialUrl, manufacturerUrl } = sourceLinks[0];
 export type Assessment = Decision & {
   itemId: string;
   versionId: string | null;
@@ -35,12 +42,16 @@ export type Assessment = Decision & {
   rule: Rule | null;
   sourceUrl: string | null;
 };
-export const investigationItemIdsSchema = z.array(z.uuid()).min(1).max(1000);
+export const investigationItemIdsSchema = z
+  .array(z.uuid())
+  .min(1)
+  .max(investigationLimits.items);
 export class Workflow {
   anakin: Anakin;
   constructor(
     public store: Store,
     key?: string,
+    public testFixtures = false,
   ) {
     this.anakin = new Anakin(key, async (run) => {
       await store
@@ -271,6 +282,8 @@ export class Workflow {
     return { ...assessment, id: assessmentId };
   }
   async judge() {
+    if (!this.testFixtures)
+      throw Error('Test fixtures are disabled in this workspace.');
     await this.import(demoInventory, 'CONTROLLED_DEMO_FIXTURE');
     const { version } = await this.store.saveSource(
       officialUrl,
@@ -285,7 +298,9 @@ export class Workflow {
     );
     const rule = groundRule(iniuRule, fixtureMarkdown);
     await this.persistRule(version.id, rule);
-    const rows = await this.store.all('SELECT * FROM inventory_items');
+    const rows = await this.store.all(
+      'SELECT * FROM inventory_items WHERE archived=0',
+    );
     const results: (Assessment & { id: string })[] = [];
     for (const row of rows) {
       if (!demoInventory.some((x) => x.assetTag === row.asset_tag)) continue;
@@ -340,6 +355,8 @@ export class Workflow {
     };
   }
   async controlledChange(version: 'A' | 'B') {
+    if (!this.testFixtures)
+      throw Error('Test fixtures are disabled in this workspace.');
     const url = 'https://recallops.invalid/controlled-notice',
       text = version === 'A' ? monitoringTextA : monitoringTextB;
     let mon = await this.store.first(
@@ -439,7 +456,9 @@ export class Workflow {
       itemIds === undefined
         ? null
         : new Set(investigationItemIdsSchema.parse(itemIds));
-    const inventory = await this.store.all('SELECT * FROM inventory_items');
+    const inventory = await this.store.all(
+      'SELECT * FROM inventory_items WHERE archived=0',
+    );
     const rows = selectedIds
       ? inventory.filter((r) => selectedIds.has(r.id))
       : inventory;
@@ -459,21 +478,19 @@ export class Workflow {
         );
         continue;
       }
-      const key = `${x.brand} ${x.model}`;
+      const key = `${normalize(x.brand)} ${normalizeModel(x.model)}`;
       (groups.get(key) ?? (groups.set(key, []), groups.get(key)!)).push(r);
     }
-    let count = 0;
-    for (const [identity, items] of groups) {
-      if (count++ >= 8) {
-        for (const r of items)
-          await this.assess(r, null, null, 'LIVE_ANAKIN', null, {
-            discoveryComplete: false,
-          });
-        errors.push(
-          'Investigation limit reached: remaining groups need another scoped investigation.',
-        );
+    let count = 0,
+      deferredGroups = 0;
+    for (const items of groups.values()) {
+      const first = payload<Inventory>(items[0]);
+      const identity = `${first.brand?.trim()} ${first.model?.trim()}`;
+      if (count >= investigationLimits.groups) {
+        deferredGroups++;
         continue;
       }
+      count++;
       try {
         const found = await this.anakin.search(
           `${identity} official product safety recall manufacturer eligibility serial number`,
@@ -482,7 +499,7 @@ export class Workflow {
           .map((x) => x.url)
           .filter((url) => {
             try {
-              safeUrl(url);
+              recallNoticeUrl(url);
               return true;
             } catch {
               return false;
@@ -493,18 +510,20 @@ export class Workflow {
               Number(b.includes('iniushop.com')) -
               Number(a.includes('iniushop.com')),
           );
-        if (
-          items.every((row) => {
-            const item = payload<Inventory>(row);
-            return (
-              normalize(item.brand ?? '') === 'INIU' &&
-              normalizeModel(item.model ?? '') === normalizeModel('BI-B41')
+        for (const link of sourceLinks) {
+          if (
+            items.every((row) => {
+              const item = payload<Inventory>(row);
+              return (
+                normalize(item.brand ?? '') === normalize(link.brand) &&
+                normalizeModel(item.model ?? '') === normalizeModel(link.model)
+              );
+            })
+          )
+            urls.unshift(
+              recallNoticeUrl(link.manufacturerUrl),
+              recallNoticeUrl(link.noticeUrl),
             );
-          })
-        ) {
-          // The user-supplied recall notices take precedence over interactive checker pages.
-          // They are still freshly retrieved and extracted through Anakin.
-          urls.unshift(manufacturerUrl, officialUrl);
         }
         if (!urls.length) {
           for (const r of items)
@@ -518,9 +537,21 @@ export class Workflow {
         }
         const documents = [];
         let retrievalFailed = false;
-        for (const url of [...new Set(urls)].slice(0, 2)) {
+        for (const url of [...new Set(urls)].slice(
+          0,
+          investigationLimits.sourcesPerGroup,
+        )) {
           try {
-            const doc = await this.anakin.scrape(url);
+            const doc = await this.anakin.scrape(url, async (retrieved) => {
+              await this.store.saveSource(url, retrieved.markdown, {
+                title: 'Official recall source',
+                label: retrieved.label,
+                providerId: retrieved.id,
+                authority: new URL(url).hostname.endsWith('cpsc.gov')
+                  ? 'US regulator'
+                  : 'Manufacturer',
+              });
+            });
             const { version } = await this.store.saveSource(url, doc.markdown, {
               title: doc.rule.title,
               label: doc.label,
@@ -533,9 +564,7 @@ export class Workflow {
             documents.push({ ...doc, versionId: version.id });
           } catch (e) {
             retrievalFailed = true;
-            errors.push(
-              `${url}: ${e instanceof Error ? e.message : 'Source retrieval failed'}`,
-            );
+            errors.push(`${url}: ${readableError(e)}`);
           }
         }
         for (const r of items) {
@@ -617,21 +646,32 @@ export class Workflow {
           );
         }
       } catch (e) {
-        errors.push(e instanceof Error ? e.message : 'Investigation failed');
+        errors.push(readableError(e));
         for (const r of items)
           await this.assess(r, null, null, 'LIVE_ANAKIN', null, {
             discoveryComplete: false,
           });
       }
     }
+    if (deferredGroups)
+      errors.push(
+        `${deferredGroups} product groups were deferred because this scan is limited to ${investigationLimits.groups} groups. Their existing assessments were preserved. Select those units for another scan.`,
+      );
     await this.store
       .audit('investigation', 'investigation.completed', {
+        processedGroups: count,
+        deferredGroups,
         groups: groups.size,
         itemIds: rows.map((r) => r.id),
         errors,
       })
       .run();
-    return { groups: groups.size, errors };
+    return {
+      groups: groups.size,
+      processedGroups: count,
+      deferredGroups,
+      errors: [...new Set(errors)],
+    };
   }
   async refreshMonitor(mon: Row) {
     const p = payload<Record<string, unknown>>(mon);
@@ -701,7 +741,16 @@ export class Workflow {
     };
   }
   async reassessUrl(url: string) {
-    const doc = await this.anakin.scrape(url);
+    const doc = await this.anakin.scrape(url, async (retrieved) => {
+      await this.store.saveSource(url, retrieved.markdown, {
+        title: 'Official recall source',
+        label: retrieved.label,
+        providerId: retrieved.id,
+        authority: new URL(url).hostname.endsWith('cpsc.gov')
+          ? 'US regulator'
+          : 'Manufacturer',
+      });
+    });
     const { version } = await this.store.saveSource(url, doc.markdown, {
       title: doc.rule.title,
       label: doc.label,
@@ -710,7 +759,9 @@ export class Workflow {
     });
     await this.persistRule(version.id, doc.rule);
     let assessed = 0;
-    for (const r of await this.store.all('SELECT * FROM inventory_items'))
+    for (const r of await this.store.all(
+      'SELECT * FROM inventory_items WHERE archived=0',
+    ))
       if (relevant(doc.rule, payload<Inventory>(r)) !== false) {
         const history = await this.store.all(
           'SELECT * FROM assessments WHERE item_id=?',

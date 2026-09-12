@@ -1,0 +1,108 @@
+{
+  "publisher": "U.S. Consumer Product Safety Commission",
+  "sourceUrl": "https://www.cpsc.gov/Recalls/CPSC-Recalls-Application-Program-Interface-API-Information",
+  "licenseUrl": "https://catalog.data.gov/dataset/recalls-api",
+  "scope": "Selected US electronics recall notices. This is a dated public-data snapshot, not a complete recall search or an inventory of owned units.",
+  "records": [
+    {
+      "id": 10884,
+      "number": "26647",
+      "title": "BenQ America Recalls GV31 Portable Projectors Due to Risk of Serious Injury or Death from Fire and Burn Hazards",
+      "date": "2026-07-30",
+      "url": "https://www.cpsc.gov/Recalls/2026/BenQ-America-Recalls-GV31-Portable-Projectors-Due-to-Risk-of-Serious-Injury-or-Death-from-Fire-and-Burn-Hazards",
+      "products": [
+        "BenQ GV31 Portable Projectors"
+      ],
+      "description": "This recall involves BenQ-branded portable projectors, model GV31. The white, circular projectors measure about 5.2 inches by 8 inches by 7.5 inches; weigh about 3.7 pounds and are powered by a rechargeable lithium-ion battery. The projectors sit on a gray base and have a built-in speaker, a carrying strap, a lens and control buttons at the top. They were shipped with a remote control. The brand name and model number are printed on the label on the underside of the projector's gray base.",
+      "hazards": [
+        "The recalled projectors' lithium-ion battery can overheat, posing a risk of serious injury or death from fire and burn hazards."
+      ],
+      "remedies": [
+        "Consumers should stop using the projectors immediately and contact BenQ for a free battery repair or replacement projector, including shipping. Consumers will be asked to register at https://www.benq.com/en-us/support/gv31recall.html and receive a prepaid label and package to return the recalled product. Note: Do not throw this recalled projector with lithium-ion battery in the trash, the general recycling stream (e.g., street-level or curbside recycling bins), or used battery recycling boxes found at various retail and home improvement stores. Recalled lithium-ion batteries must be disposed of differently than other batteries, because they present a greater risk of fire. Your municipal household hazardous waste (HHW) collection center may accept this recalled lithium-ion battery or device for disposal. Before taking your battery or device to a HHW collection center, contact that office ahead of time and ask whether it accepts recalled lithium-ion batteries. If it does not, contact your municipality for further guidance."
+      ],
+      "contact": "BenQ toll-free at 866-600-2367 from 8:30 a.m. to 5:30 p.m. CT Monday through Friday, email GV31recall@benq.com, or online https://www.benq.com/en-us/support/gv31recall.html or www.benq.com, and click on \"Recalls\" at the top of the page for more information.",
+      "apiUrl": "https://www.saferproducts.gov/RestWebServices/Recall?format=json&RecallNumber=26647",
+      "retrievedAt": "2026-09-12T03:35:56.577Z"
+    },
+    {
+      "id": 10516,
+      "number": "26135",
+      "title": "INIU Recalls Power Banks Due to Fire and Burn Hazards; Sold on Amazon",
+      "date": "2025-12-05",
+      "url": "https://www.cpsc.gov/Recalls/2026/INIU-Recalls-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon",
+      "products": [
+        "INIU BI-B41 Power Banks"
+      ],
+      "description": "This recall involves INIU 10,000mAh portable power banks, model BI-B41. The recalled power banks have a black or blue case and the INIU logo and a paw-print LED light are on the front. The model and serial number are printed on the back of the power bank at the bottom. Only portable power banks with serial numbers 000G21, 000H21, 000I21 and 000L21 are included in this recall. Note: Do not throw this recalled lithium-ion battery or device in the trash, in the general recycling stream (e.g., street-level or curbside recycling bins), or in used battery recycling boxes found at various retail and home improvement stores. Recalled lithium-ion batteries must be disposed of differently than other batteries, because they present a greater risk of fire. Your municipal household hazardous waste (HHW) collection center may accept this recalled lithium-ion battery or device for disposal. Before taking your battery or device to a HHW collection center, contact that office ahead of time and ask whether it accepts recalled lithium-ion batteries. If it does not, contact your municipality for further guidance.",
+      "hazards": [
+        "The lithium-ion battery in the recalled power banks can overheat and ignite, posing fire and burn hazards to consumers."
+      ],
+      "remedies": [
+        "Consumers should immediately stop using the recalled planers and contact Grizzly Industrial for a free repair kit and installation instructions. The repair kit consists of an upgraded chip breaker adjustment rod, spacer, set screws, lock washers, and lock nuts."
+      ],
+      "contact": "INIU toll-free at 888-886-3606 from 8 a.m. to 5 p.m. ET Monday through Friday, email at recall@iniu.shop, or online at https://iniushop.com/pages/recall-b41# or https://iniushop.com and click \"Product Recalls\" at the top of the page for more information.",
+      "apiUrl": "https://www.saferproducts.gov/RestWebServices/Recall?format=json&RecallNumber=26135",
+      "retrievedAt": "2026-09-12T03:35:55.014Z"
+    },
+    {
+      "id": 10311,
+      "number": "25338",
+      "title": "More than One Million Anker Power Banks Recalled Due to Fire and Burn Hazards; Manufactured by Anker Innovations",
+      "date": "2025-06-12",
+      "url": "https://www.cpsc.gov/Recalls/2025/More-than-One-Million-Anker-Power-Banks-Recalled-Due-to-Fire-and-Burn-Hazards-Manufactured-by-Anker-Innovations",
+      "products": [
+        "Anker PowerCore 10000 power banks (model A1263 only)"
+      ],
+      "description": "This recall involves Anker PowerCore 10000 power banks with model number A1263. The brand name \"Anker\" is engraved on the front of the product. The model number \"A1263\" and serial number \"SN\" are printed on the bottom. Only model number A1263 power banks sold in the U.S. with qualifying serial numbers are included in the recall. Consumers should check their serial number at https://www.anker.com/product-recalls to determine whether their power bank is included in the recall. Note: Do not throw this recalled lithium-ion battery or device in the trash, in the general recycling stream (e.g., street-level or curbside recycling bins), or in used battery recycling boxes found at various retail and home improvement stores. Recalled lithium-ion batteries must be disposed of differently than other batteries, because they present a greater risk of fire. Your municipal household hazardous waste (HHW) collection center may accept this recalled lithium-ion battery or device for disposal. Before taking your battery or device to a HHW collection center, contact it ahead of time and ask whether it accepts recalled lithium-ion batteries. If it does not, contact your municipality for further guidance.",
+      "hazards": [
+        "The lithium-ion battery in the power bank can overheat, posing fire and burn hazards to consumers."
+      ],
+      "remedies": [
+        "Consumers should immediately stop using the recalled power banks and contact Anker Innovations for instructions on receiving a free replacement power bank. Visit https://www.anker.com/product-recalls to register for the recall. To receive a replacement, consumers will be required to submit a photo of their recalled power bank showing the model number, serial number, their name, the date of the photograph, and the word \"recalled\" written on the power bank in permanent marker. A purchase receipt will be requested but will not be required to participate in the recall. Consumers will also be required to confirm disposal of the power bank in accordance with applicable laws and regulations before receiving a replacement."
+      ],
+      "contact": "Anker toll-free at 800-988-7973 from 6 a.m. to 5 p.m. PT Monday through Friday, email at support@anker.com, or online at https://support.anker.com/s/emailcontactus. A Live Chat function is also available at https://support.anker.com/s/contact-us, or go to https://www.anker.com/product-recalls or www.anker.com and click on \"Product Recalls\" at the top of the page for more information.",
+      "apiUrl": "https://www.saferproducts.gov/RestWebServices/Recall?format=json&RecallNumber=25338",
+      "retrievedAt": "2026-09-12T03:35:55.757Z"
+    },
+    {
+      "id": 10258,
+      "number": "25248",
+      "title": "Baseus Portable Chargers Recalled Due to Fire Hazard; Sold on Amazon.com by Shenzhen Baseus Technology",
+      "date": "2025-05-01",
+      "url": "https://www.cpsc.gov/Recalls/2025/Baseus-Portable-Chargers-Recalled-Due-to-Fire-Hazard-Sold-on-Amazon-com-by-Shenzhen-Baseus-Technology",
+      "products": [
+        "Baseus 65W 30000mAh Portable Chargers (model number BS-30KP365)"
+      ],
+      "description": "This recall involves Baseus 65W 30000mAh portable chargers with model number BS-30KP365 and a serial number ending in the number 0 through 9 or the letter \"D.\" The recalled portable chargers were sold in black and white and have \"65w\" printed on the front. The bottom contains a printed label with the brand name \"Baseus,\" the model number \"BS-30KP365,\" and the serial number, beginning \"SN.\" Note: Do not throw this recalled lithium-ion battery or device in the trash, in the general recycling stream (e.g., street-level or curbside recycling bins), or in used battery recycling boxes found at various retail and home improvement stores. Recalled lithium-ion batteries must be disposed of differently than other batteries, because they present a greater risk of fire. Your municipal household hazardous waste (HHW) collection center may accept this recalled lithium-ion battery or device for disposal. Before taking your battery or device to a HHW collection center, contact them ahead of time and ask whether they accept recalled lithium-ion batteries. If they don't, contact your municipality for further guidance.",
+      "hazards": [
+        "The lithium-ion battery in the recalled portable chargers can overheat, posing a fire hazard."
+      ],
+      "remedies": [
+        "Consumers should immediately stop using the recalled portable chargers and contact Baseus to receive a free replacement charger. The replacement portable charger will have the same model number (BS 30KP365) and a different serial number ending in the letter \"A.\" Consumers will need to submit a photo of the recalled portable charger showing the model number and serial number to the firm's recall registration page. Consumers without an order number will need to submit a photo of the portable charger with their name and date written on the portable charger in permanent marker. Visit https://www.baseus.com/pages/recall_select_BS-30KP365 to register and get instructions on how to receive a free replacement. To receive a replacement, consumers will be required to confirm disposal of the portable charger in accordance with applicable laws and regulations."
+      ],
+      "contact": "Baseus toll-free at 888-568-7216 from 8 a.m. to 5 p.m. ET Monday through Friday, email care@baseus.com, or online at https://www.baseus.com/pages/recall_select_BS-30KP365 or www.baseus.com and click on \"Product Recall Information\" at the top of the page for more information.",
+      "apiUrl": "https://www.saferproducts.gov/RestWebServices/Recall?format=json&RecallNumber=25248",
+      "retrievedAt": "2026-09-12T03:35:56.291Z"
+    },
+    {
+      "id": 10104,
+      "number": "25061",
+      "title": "Belkin Recalls Portable Wireless Battery Chargers for Smart Watches Due to Fire Hazard ",
+      "date": "2024-12-05",
+      "url": "https://www.cpsc.gov/Recalls/2025/Belkin-Recalls-Portable-Wireless-Battery-Chargers-for-Smart-Watches-Due-to-Fire-Hazard",
+      "products": [
+        "Belkin BoostCharge Pro Fast Wireless Charger Power Banks 10K"
+      ],
+      "description": "This recall involves Belkin BoostCharge Pro Fast Wireless Charger portable 10K power banks with model number BPD005. The model number is printed on the back top of the power bank. The serial number is also printed on the back of the product, will be a total of 14 digits, and start with the numbers and letter \"57V\". They were sold in black. The power banks have a white magnetic charger for smart watches. \"Belkin\" is written in white on the front of the power banks.",
+      "hazards": [
+        "The lithium-ion batteries in the recalled power banks can overheat, posing a fire hazard."
+      ],
+      "remedies": [
+        "Consumers should immediately stop using the recalled power banks and contact Belkin to receive a full refund or store credit. Consumers will need to submit photos showing the front and back of the power bank with their recall submission form. Consumers should dispose of the lithium-ion battery in accordance with local and state regulations and not in household trash."
+      ],
+      "contact": "Belkin at 800-223-5546 from 9 a.m. to 9 p.m. ET Monday through Friday or online at http://www.belkin.com/bpd005recall, or at https://www.belkin.com/ and click on \"Product Recalls\" at the bottom of the page for more information.",
+      "apiUrl": "https://www.saferproducts.gov/RestWebServices/Recall?format=json&RecallNumber=25061",
+      "retrievedAt": "2026-09-12T03:35:56.019Z"
+    }
+  ]
+}

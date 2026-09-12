@@ -1,8 +1,9 @@
+import { readableError } from './errors';
 import { limitedText } from '../core/limits';
 import { z } from 'zod';
 import { type Rule, type SourceLabel } from '../core/rules';
 import { extractionSchema, decodeExtraction } from '../core/extraction';
-import { safeUrl, redact } from './security';
+import { safeUrl, recallNoticeUrl, redact } from './security';
 export type Product = 'Search' | 'Scraper' | 'Wire' | 'Monitoring';
 export type Run = {
   product: Product;
@@ -132,9 +133,10 @@ export class Anakin {
       });
       return result;
     } catch (e) {
-      const error = redact(
-        e instanceof Error ? e.message : 'Anakin request failed',
-      ).replaceAll(this.key ?? '__NO_SECRET__', '[REDACTED]');
+      const error = redact(readableError(e)).replaceAll(
+        this.key ?? '__NO_SECRET__',
+        '[REDACTED]',
+      );
       await this.record({
         product,
         status: 'failed',
@@ -154,8 +156,11 @@ export class Anakin {
       searchSchema.parse(await request('/search', { prompt, limit: 5 })),
     );
   }
-  scrape(url: string) {
-    safeUrl(url);
+  scrape(
+    url: string,
+    onRetrieved?: (source: Omit<Scrape, 'rule'>) => Promise<void>,
+  ) {
+    recallNoticeUrl(url);
     return this.track('Scraper', async (request) => {
       const submitted = await request('/url-scraper', {
         url,
@@ -179,6 +184,13 @@ export class Anakin {
           if (typeof r.url !== 'string') throw Error('Invalid provider URL');
           safeUrl(r.url);
         }
+        await onRetrieved?.({
+          id: submitted.jobId,
+          url,
+          markdown: r.markdown,
+          cached: r.cached === true,
+          label: r.cached === true ? 'CACHED_ANAKIN' : 'LIVE_ANAKIN',
+        });
         const rule = decodeExtraction(r.generatedJson, r.markdown);
         return {
           id: submitted.jobId,
@@ -244,7 +256,7 @@ export class Anakin {
     });
   }
   monitorCreate(url: string, webhook?: string) {
-    safeUrl(url);
+    recallNoticeUrl(url);
     return this.track('Monitoring', (request) =>
       request('/monitors', {
         url,

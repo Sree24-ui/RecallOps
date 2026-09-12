@@ -17,7 +17,7 @@ void test('Judge workflow persists correct assessments, quarantine, sales and ev
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.judge();
     assert.equal(
       (await t.store.all('SELECT * FROM inventory_items')).length,
@@ -58,7 +58,7 @@ void test('source A to B reassesses excluded unit to needs_review and is idempot
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.judge();
     const r = await w.controlledChange('B');
     assert.equal(
@@ -116,7 +116,7 @@ void test('conflicting import cannot overwrite a physical unit', async () => {
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import([baseItem], 'test');
     await assert.rejects(
       () => w.import([{ ...baseItem, serial: 'different' }], 'test'),
@@ -150,7 +150,7 @@ void test('webhook body event key enforces replay idempotency; failed event reco
         ],
       );
     assert.equal((await t.store.all('SELECT * FROM monitor_events')).length, 1);
-    await processEvent(t.store, new Workflow(t.store), 'e0');
+    await processEvent(t.store, new Workflow(t.store, undefined, true), 'e0');
     assert.equal(
       (await t.store.first('SELECT * FROM monitor_events'))?.status,
       'failed',
@@ -193,7 +193,7 @@ void test('linked regulator subset preserves manufacturer criteria and all four 
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import(
       [
         baseItem,
@@ -251,7 +251,7 @@ for (const [op, brand, expected] of [
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       const { primary, secondary } = manufacturerAndRegulatorSubset();
       secondary.conditions = {
@@ -285,7 +285,7 @@ void test('linked INIU subset compares normalized predicates and accepts nested 
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import([baseItem], 'test');
     const { primary, secondary } = manufacturerAndRegulatorSubset();
     secondary.brand = ' iniu ';
@@ -516,7 +516,7 @@ for (const [difference, mutate] of unreconciledSubsets) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       const { primary, secondary } = manufacturerAndRegulatorSubset();
       mutate(primary, secondary);
@@ -548,7 +548,7 @@ for (const substitutedSource of ['manufacturer', 'regulator'] as const) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       const { primary, secondary } = manufacturerAndRegulatorSubset();
       w.anakin.search = async () => ({ results: [] });
@@ -587,7 +587,7 @@ void test('scoped investigation queries and assesses only selected physical unit
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import(
       [
         { ...baseItem, assetTag: 'SELECTED-AFFECTED' },
@@ -660,7 +660,7 @@ for (const [brand, model] of [
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([{ ...baseItem, brand, model }], 'test');
       w.anakin.search = async () => ({
         results: [
@@ -701,11 +701,11 @@ for (const [brand, model] of [
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([{ ...baseItem, brand, model }], 'test');
       const discovered = [
-        'https://www.cpsc.gov/Recalls/test-notice-first',
-        'https://www.cpsc.gov/Recalls/test-notice-second',
+        'https://www.cpsc.gov/Recalls/2026/test-notice-first',
+        'https://www.cpsc.gov/Recalls/2026/test-notice-second',
       ];
       w.anakin.search = async () => ({
         results: discovered.map((url) => ({ url })),
@@ -731,7 +731,7 @@ for (const failedUrl of [manufacturerUrl, officialUrl]) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       w.anakin.search = async () => ({
         results: [{ url: 'https://iniushop.com/pages/recall-checker' }],
@@ -786,7 +786,7 @@ for (const scope of ['unknown', 'empty', 'invalid', 'too-many'] as const) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       const item = await t.store.first('SELECT * FROM inventory_items');
       const validId = String(item!.id);
@@ -846,7 +846,7 @@ void test('incomplete product identity needs review without querying Anakin or p
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import(
       [
         { ...baseItem, assetTag: 'MISSING-BRAND', brand: undefined },
@@ -882,7 +882,7 @@ for (const [name, results] of [
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import(
         [{ ...baseItem, brand: 'Example', model: 'EX-1' }],
         'test',
@@ -915,7 +915,7 @@ for (const difference of ['logic', 'precision'] as const) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       const item = { ...baseItem, retailer: 'Woot' };
       await w.import([item], 'test');
       const first = structuredClone(iniuRule);
@@ -988,7 +988,7 @@ void test('repeated monitor refresh preserves unresolved assessments from anothe
   const t = testStore();
   try {
     await t.store.boot();
-    const w = new Workflow(t.store);
+    const w = new Workflow(t.store, undefined, true);
     await w.import([baseItem], 'test');
     const first = structuredClone(iniuRule);
     first.exclusions = {
@@ -1032,7 +1032,7 @@ for (const providerCheckedAt of [null, '2026-09-01T09:00:00.000Z']) {
     const t = testStore();
     try {
       await t.store.boot();
-      const w = new Workflow(t.store);
+      const w = new Workflow(t.store, undefined, true);
       await w.import([baseItem], 'test');
       const monitorId = crypto.randomUUID();
       await t.store

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test('complete Judge workflow, case evidence, exports and change reassessment', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/workspace');
   await page
     .getByRole('button', { name: 'Run RecallOps Judge Demo', exact: true })
     .click();
@@ -77,7 +77,7 @@ test('complete Judge workflow, case evidence, exports and change reassessment', 
   ).toBeVisible();
 });
 test('CSV review and import through the UI', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/workspace');
   await page
     .getByRole('button', { name: 'Import review', exact: true })
     .click();
@@ -121,7 +121,7 @@ test('selected product group sends only its inventory IDs (mocked provider workf
     }
     await route.continue();
   });
-  await page.goto('/');
+  await page.goto('/workspace');
   await page
     .getByRole('button', { name: 'Investigation', exact: true })
     .click();
@@ -139,7 +139,7 @@ test('selected product group sends only its inventory IDs (mocked provider workf
 });
 test('mobile navigation and accessible viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/workspace');
   await expect(
     page.getByRole('button', { name: 'Run RecallOps Judge Demo', exact: true }),
   ).toBeVisible();

@@ -166,8 +166,8 @@ export function WorkspaceOverview({
               <Package />
               <h3>Your inventory starts here</h3>
               <p>
-                Import a CSV or add a physical unit. The labeled Judge demo is
-                also available.
+                Import a CSV or add a physical unit you actually hold. Public
+                recall notices do not create inventory.
               </p>
               <Button onClick={() => navigate('import')}>
                 <PlusIcon /> Add inventory
@@ -354,23 +354,27 @@ export function WorkspaceOverview({
           <Button variant="outline" onClick={() => navigate('actions')}>
             Manage actions <ArrowRight />
           </Button>
-          <div className="demo-shortcut">
-            <Play size={18} />
-            <div>
-              <strong>Explore with sample inventory</strong>
-              <span>
-                {data.demo.sampleCount} labeled units · controlled replay
-              </span>
-            </div>
-          </div>
-          <Button
-            className="demo-button"
-            disabled={busy}
-            variant="ghost"
-            onClick={judge}
-          >
-            Run RecallOps Judge Demo <ArrowUpRight />
-          </Button>
+          {data.demo.enabled && (
+            <>
+              <div className="demo-shortcut">
+                <Play size={18} />
+                <div>
+                  <strong>Explore with sample inventory</strong>
+                  <span>
+                    {data.demo.sampleCount} labeled units · controlled replay
+                  </span>
+                </div>
+              </div>
+              <Button
+                className="demo-button"
+                disabled={busy}
+                variant="ghost"
+                onClick={judge}
+              >
+                Run RecallOps Judge Demo <ArrowUpRight />
+              </Button>
+            </>
+          )}
         </section>
       </div>
     </>
