@@ -8,7 +8,8 @@ import { Workflow } from './workflow';
 export function context(req: Request) {
   const url = new URL(req.url),
     env = config();
-  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  const local =
+    !env.hosted && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
   if (
     !local &&
     (!env.OPERATOR_TOKEN ||

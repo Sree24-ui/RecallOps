@@ -1,8 +1,18 @@
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createClient } from '@libsql/client';
+import { libsqlDatabase } from '../db/libsql';
+import type { Database } from '../db/contracts';
 import { Store } from '../lib/server/store';
 export function testStore() {
-  const sqlite = new DatabaseSync(':memory:');
+  const useLibsql = process.env.TEST_DATABASE_DRIVER === 'libsql';
+  const directory = useLibsql
+    ? mkdtempSync(join(tmpdir(), 'recallops-db-'))
+    : null;
+  const file = directory ? join(directory, 'test.sqlite') : ':memory:';
+  const sqlite = new DatabaseSync(file);
   sqlite.exec('PRAGMA foreign_keys=ON;');
   for (const file of readdirSync(new URL('../drizzle/', import.meta.url))
     .filter((f) => f.endsWith('.sql'))
@@ -59,9 +69,18 @@ export function testStore() {
       }
     },
   };
+  const client = useLibsql
+    ? createClient({ url: 'file:' + file, intMode: 'number' })
+    : null;
   return {
-    store: new Store(db as unknown as D1Database),
-    close: () => sqlite.close(),
+    store: new Store(
+      client ? libsqlDatabase(client) : (db as unknown as Database),
+    ),
+    close: () => {
+      client?.close();
+      sqlite.close();
+      if (directory) rmSync(directory, { recursive: true });
+    },
     sqlite,
   };
 }

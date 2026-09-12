@@ -8,7 +8,7 @@ RecallOps — Evidence before resale
 
 ## Project Description
 
-RecallOps is an evidence-backed recall workspace for electronics resellers, repair teams and equipment owners. Its catalogue contains actual CPSC recall records with source links and retrieval dates. Operators import their own physical inventory and use Anakin to find and extract official notices. A deterministic TypeScript matcher compares each unit’s model, serial, variant and original purchase facts against grounded criteria. Missing or conflicting evidence requires review. Affected units receive an internal hold and staff tasks, with exportable action packets and an audit trail. React and TypeScript run on a Cloudflare Worker with D1 storage. Public notices are separate from protected inventory. The normal application contains no synthetic inventory; controlled cases are restricted to isolated tests. Built by sole contributor Sree24-ui.
+RecallOps is an evidence-backed recall workspace for electronics resellers, repair teams and equipment owners. Its catalogue contains actual CPSC recall records with source links and retrieval dates. Operators import their own physical inventory and use Anakin to find and extract official notices. A deterministic TypeScript matcher compares each unit’s model, serial, variant and original purchase facts against grounded criteria. Missing or conflicting evidence requires review. Affected units receive an internal hold and staff tasks, with exportable action packets and an audit trail. React and TypeScript run through Vinext and Nitro on Node.js 24, on Vercel and Turso for persistent SQLite-compatible storage. Public notices are separate from protected inventory. The normal application contains no synthetic inventory; controlled cases are restricted to isolated local tests. Built by sole contributor Sree24-ui.
 
 ## Project Github link
 
@@ -24,9 +24,9 @@ Historical September 10–11 application verification recorded actual Search, Sc
 
 ## Deployed Link
 
-https://recallops-sree24.sreepad-1251070506.chatgpt.site
+https://recallops-nine.vercel.app
 
-Check DEPLOYMENT-STATUS.md in this pack for the verified access level before submitting.
+Check DEPLOYMENT-STATUS.md in the submission pack for the verified URL and access level before submitting.
 
 ## Fields that require your action
 

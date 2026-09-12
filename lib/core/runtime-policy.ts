@@ -3,6 +3,12 @@ export const investigationLimits = {
   sourcesPerGroup: 2,
   items: 1000,
 } as const;
+// Leave one minute of Vercel's five-minute function limit for persistence and
+// returning a useful partial result after provider work stops.
+export const providerLimits = {
+  workflowDurationMs: 240_000,
+  requestTimeoutMs: 20_000,
+} as const;
 export const approvedSourceHosts = [
   'cpsc.gov',
   'www.cpsc.gov',

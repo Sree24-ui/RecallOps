@@ -8,4 +8,4 @@
 6. Inspect the returned source, criteria and assessment. Incomplete criteria or missing facts require review. Affected units receive an internal hold and tasks.
 7. Explain monitoring honestly: provider checks may be queued, subscriptions start paused, and external signed delivery is not yet verified.
 
-The prepared video shows the actual catalogue and empty local inventory with captions, without fabricated import or live-call results. Its historical call-log view is explicitly labelled. It has no voice track. Upload the WebM to a service accepted by the form and use the service's viewable URL.
+The prepared video shows the actual deployed Vercel catalogue and empty production inventory with captions, without fabricated import or live-call results. Its production provider log is empty; no provider results or physical units are fabricated. It has no voice track. Upload the WebM to a service accepted by the form and use the service's viewable URL.

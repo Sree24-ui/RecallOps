@@ -41,3 +41,11 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 *.tsbuildinfo
+
+# Node/Nitro deployment and local SQLite storage
+/.output/
+/.nitro/
+/.data/
+# Provider-installed local agent helpers
+/.agents/
+/skills-lock.json

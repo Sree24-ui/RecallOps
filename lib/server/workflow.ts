@@ -1,3 +1,4 @@
+import type { DatabaseStatement } from '../../db/contracts';
 import sourceLinks from '../../data/source-links.json';
 import { investigationLimits } from '../core/runtime-policy';
 import { readableError } from './errors';
@@ -24,7 +25,7 @@ import {
   recallNoticeUrl,
   publicProviderData,
 } from './security';
-import { Anakin } from './anakin';
+import { Anakin, ProviderDeadlineError } from './anakin';
 import {
   demoInventory,
   fixtureMarkdown,
@@ -84,7 +85,7 @@ export class Workflow {
     );
     if (existing)
       return { importId: existing.id, inserted: 0, duplicate: true };
-    const statements: D1PreparedStatement[] = [];
+    const statements: DatabaseStatement[] = [];
     const importId = id();
     for (const item of items) {
       const old = await this.store.first(
@@ -483,10 +484,16 @@ export class Workflow {
     }
     let count = 0,
       deferredGroups = 0;
+    let timeBudgetReached = false;
     for (const items of groups.values()) {
       const first = payload<Inventory>(items[0]);
       const identity = `${first.brand?.trim()} ${first.model?.trim()}`;
-      if (count >= investigationLimits.groups) {
+      if (
+        count >= investigationLimits.groups ||
+        timeBudgetReached ||
+        !this.anakin.hasTimeRemaining()
+      ) {
+        if (!this.anakin.hasTimeRemaining()) timeBudgetReached = true;
         deferredGroups++;
         continue;
       }
@@ -563,10 +570,12 @@ export class Workflow {
             await this.persistRule(version.id, doc.rule);
             documents.push({ ...doc, versionId: version.id });
           } catch (e) {
+            if (e instanceof ProviderDeadlineError) throw e;
             retrievalFailed = true;
             errors.push(`${url}: ${readableError(e)}`);
           }
         }
+        this.anakin.checkDeadline();
         for (const r of items) {
           const item = payload<Inventory>(r),
             relevantDocs = documents.filter(
@@ -646,6 +655,12 @@ export class Workflow {
           );
         }
       } catch (e) {
+        if (e instanceof ProviderDeadlineError) {
+          timeBudgetReached = true;
+          count--;
+          deferredGroups++;
+          continue;
+        }
         errors.push(readableError(e));
         for (const r of items)
           await this.assess(r, null, null, 'LIVE_ANAKIN', null, {
@@ -655,7 +670,7 @@ export class Workflow {
     }
     if (deferredGroups)
       errors.push(
-        `${deferredGroups} product groups were deferred because this scan is limited to ${investigationLimits.groups} groups. Their existing assessments were preserved. Select those units for another scan.`,
+        `${deferredGroups} product groups were deferred because ${timeBudgetReached ? 'the investigation time limit was reached' : `this scan is limited to ${investigationLimits.groups} groups`}. Their existing assessments were preserved. Select those units for another scan.`,
       );
     await this.store
       .audit('investigation', 'investigation.completed', {

@@ -1,4 +1,5 @@
 import { sha256 } from './security';
+import type { Database } from '../../db/contracts';
 export const now = () => new Date().toISOString();
 export const id = () => crypto.randomUUID();
 export type Row = {
@@ -8,7 +9,7 @@ export type Row = {
   [k: string]: unknown;
 };
 export class Store {
-  constructor(public db: D1Database) {}
+  constructor(public db: Database) {}
   async all(sql: string, args: unknown[] = []): Promise<Row[]> {
     return (
       await this.db

@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 // The Cloudflare plugin emits local preview secrets into its server output.
 // Deployment artifacts must receive secrets from their runtime configuration.
-const output = fileURLToPath(new URL('../dist/', import.meta.url));
+const outputs = ['../dist/', '../.output/', '../.vercel/output/'].map((path) =>
+  fileURLToPath(new URL(path, import.meta.url)),
+);
 let removed = 0;
 async function clean(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -16,5 +18,11 @@ async function clean(directory) {
     }
   }
 }
-await clean(output);
-console.log(`Build output checked; removed ${removed} local environment file(s).`);
+for (const output of outputs) {
+  await clean(output).catch((error) => {
+    if (error.code !== 'ENOENT') throw error;
+  });
+}
+console.log(
+  `Build output checked; removed ${removed} local environment file(s).`,
+);

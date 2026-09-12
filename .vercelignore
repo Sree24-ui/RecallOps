@@ -1,0 +1,15 @@
+work/
+.wrangler/
+.data/
+.env*
+.dev.vars*
+.openai/
+outputs/
+playwright-report/
+test-results/
+.agents/
+skills-lock.json
+.output/
+.nitro/
+.vinext/
+dist/

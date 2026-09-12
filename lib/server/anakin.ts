@@ -1,5 +1,6 @@
 import { readableError } from './errors';
 import { limitedText } from '../core/limits';
+import { providerLimits } from '../core/runtime-policy';
 import { z } from 'zod';
 import { type Rule, type SourceLabel } from '../core/rules';
 import { extractionSchema, decodeExtraction } from '../core/extraction';
@@ -38,6 +39,14 @@ const searchSchema = z.object({
     )
     .max(20),
 });
+export class ProviderDeadlineError extends Error {
+  constructor() {
+    super(
+      'The provider operation time limit was reached. Retry the operation; a submitted provider job may still be processing.',
+    );
+    this.name = 'ProviderDeadlineError';
+  }
+}
 export class Anakin {
   constructor(
     private key: string | undefined,
@@ -46,7 +55,21 @@ export class Anakin {
     private pause: (n: number) => Promise<void> = (n) =>
       new Promise((r) => setTimeout(r, n)),
     private pollLimit = 25,
+    private deadlineAt = Date.now() + providerLimits.workflowDurationMs,
   ) {}
+  hasTimeRemaining() {
+    return Date.now() < this.deadlineAt;
+  }
+  checkDeadline() {
+    const remaining = this.deadlineAt - Date.now();
+    if (remaining <= 0) throw new ProviderDeadlineError();
+    return remaining;
+  }
+  private async boundedPause(delay: number) {
+    if (delay >= this.checkDeadline()) throw new ProviderDeadlineError();
+    await this.pause(delay);
+    this.checkDeadline();
+  }
   private async track<T>(
     product: Product,
     fn: (
@@ -69,6 +92,10 @@ export class Anakin {
         );
       const request = async (path: string, body?: unknown) => {
         for (let attempt = 0; attempt < 3; attempt++) {
+          const timeout = Math.min(
+            providerLimits.requestTimeoutMs,
+            this.checkDeadline(),
+          );
           count++;
           const res = await this.fetcher('https://api.anakin.io/v1' + path, {
             method: body === undefined ? 'GET' : 'POST',
@@ -77,7 +104,7 @@ export class Anakin {
               'X-API-Key': this.key!,
             },
             ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-            signal: AbortSignal.timeout(20000),
+            signal: AbortSignal.timeout(timeout),
             redirect: 'manual',
           });
           if (
@@ -101,7 +128,7 @@ export class Anakin {
                 'Provider requested a longer retry delay; retry the operation later',
               );
             await res.body?.cancel();
-            await this.pause(delay);
+            await this.boundedPause(delay);
             continue;
           }
           if (!res.ok)
@@ -115,6 +142,7 @@ export class Anakin {
           if (typeof data.cached === 'boolean') cached = data.cached;
           if (typeof data.credits_used === 'number')
             credits = data.credits_used;
+          this.checkDeadline();
           return data;
         }
         throw Error('Anakin retries exhausted');
@@ -148,6 +176,8 @@ export class Anakin {
         credits,
         error,
       });
+      if (e instanceof ProviderDeadlineError || !this.hasTimeRemaining())
+        throw new ProviderDeadlineError();
       throw Error(error);
     }
   }
@@ -172,7 +202,7 @@ export class Anakin {
       if (typeof submitted.jobId !== 'string')
         throw Error('Scraper submission did not return jobId');
       for (let i = 0; i < this.pollLimit; i++) {
-        await this.pause(2000);
+        await this.boundedPause(2000);
         const r = await request(
           `/url-scraper/${encodeURIComponent(submitted.jobId)}`,
         );
@@ -232,7 +262,7 @@ export class Anakin {
       if (typeof r.job_id !== 'string') throw Error('Wire returned no job_id');
       let delay = 2000;
       for (let i = 0; i < this.pollLimit; i++) {
-        await this.pause(delay);
+        await this.boundedPause(delay);
         const p = await request(`/wire/jobs/${encodeURIComponent(r.job_id)}`);
         if (p.status === 'failed') {
           const detail =

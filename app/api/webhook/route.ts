@@ -1,4 +1,4 @@
-import { waitUntil } from 'cloudflare:workers';
+import { waitUntil } from '@vercel/functions';
 import { z } from 'zod';
 import { getDb, config } from '../../../db';
 import { Store, id, now, payload } from '../../../lib/server/store';
