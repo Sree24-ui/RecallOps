@@ -8,7 +8,8 @@ RecallOps helps electronics teams turn official recall evidence into decisions a
 
 ## What you can do
 
-- Browse and search a dated selection of real CPSC electronics recall notices, expand API product descriptions and open the original notice for current remedy instructions, and open the original notice.
+- Browse and search a dated selection of real CPSC electronics recall notices, expand API product descriptions and open the original notice for current remedy instructions.
+- Try the [public judge portal](https://recallops-nine.vercel.app/judge): inspect saved official evidence, add your own units, run the matcher and export reports without an owner key. Its data stays in your browser tab and it makes no fresh provider calls.
 - Open the protected operator workspace, download a blank CSV template, and import inventory you actually hold.
 - Investigate selected product groups through Anakin Search and URL Scraper. Preserve source text, retrieval times, hashes and extracted criteria.
 - Compare unit facts with evidence using a deterministic TypeScript matcher. Review affected, excluded, unresolved or no-notice results with an explanation.
@@ -36,6 +37,8 @@ npm run catalog:refresh -- 26647 26135 25338 25248 25061
 
 The refresh rejects incomplete or ambiguous records and non-notice URLs. Remedy instructions are not copied from the API: a verified upstream mismatch linked INIU power banks to unrelated planer instructions. Use the original CPSC notice for the current remedy; the catalogue is not used as eligibility evidence by the investigator. It creates no physical inventory. Update and rebuild the site to publish a newer snapshot.
 
+The public judge portal uses a separately published, dated INIU manufacturer rule from an actual archived Anakin retrieval, with a link to the corresponding CPSC notice. The saved extraction is explicitly labelled and is not a fresh recall search. Its inventory starts empty and remains in the visitor’s tab. Source criteria, such as published serial numbers, are evidence rather than prefilled unit data.
+
 The normal workspace starts empty. The prior local demonstration units have been archived with audit history preserved. Synthetic cases remain only as explicit regression-test fixtures, disabled in normal and hosted execution. The normal CSV download contains headers only. No fake serial, customer, purchase or inventory count is inferred from public data.
 
 ## Run locally
@@ -51,7 +54,7 @@ npm run db:migrate
 npm run dev -- --port 3001
 ```
 
-Open the URL printed by the server. `/` is the official catalogue; `/workspace` is the operator interface. The migration command creates an empty SQLite database at the ignored `.data/recallops.sqlite` path. Open `RecallOps.code-workspace` in a compatible editor to use the project workspace.
+Open the URL printed by the server. `/` is the official catalogue; `/judge` is the public evaluation portal; `/workspace` is the operator interface. The migration command creates an empty SQLite database at the ignored `.data/recallops.sqlite` path. Open `RecallOps.code-workspace` in a compatible editor to use the project workspace.
 
 Set `ANAKIN_API_KEY` in the ignored `.dev.vars` file for live investigations, then restart. The catalogue needs no key. Keep `ENABLE_TEST_FIXTURES=false` for normal use.
 
@@ -118,13 +121,11 @@ Using 0.0.0.0 instead of localhost exercises remote authentication on the local 
 
 Keep the E2E database separate from normal inventory. Tests include raw source validation failures, deferred scans, archived inventory, test-mode isolation, public data provenance, imports, source grounding, task conflicts, signature validation and browser interactions. `test:libsql` exercises the database adapter against isolated temporary SQLite files. Controlled matcher evaluations are not claims of live extraction accuracy. The live integration test is credential-gated and makes paid provider requests only when explicitly run.
 
-## Deployment and submission
+## Deployment
 
 Vercel is the selected deployment provider. Nitro emits the Vercel Build Output API bundle under `.vercel/output`; the operator backend requires a persistent Turso database. Server-only secrets are configured in Vercel, never committed. The postbuild check removes environment files from generated output. Only schema migrations are applied to the hosted database; no local database or test inventory is uploaded. See [deployment instructions](docs/DEPLOYMENT.md) for setup and verification. The older Sites configuration is historical and is not used by the Vercel build.
 
 See [GitHub automatic deployment setup](docs/AUTO-DEPLOY.md). This workspace already pushes to GitHub; the Vercel project is now connected to this repository and its main branch.
-
-See [submission answers](SUBMISSION.md) and [demo walkthrough](DEMO.md). The separate submission ZIP includes the captioned WebM video, screenshots, copy-ready answers and a clean source archive. Video upload, social posting, the GitHub star screenshot and the final form submission are separate user actions.
 
 ## Boundaries
 

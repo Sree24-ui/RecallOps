@@ -1,6 +1,6 @@
-# Submission answers
+# Anakin Forge — copy-ready answers
 
-Prepared for the Anakin Forge form. No form fields have been submitted.
+No form fields have been submitted. Use the public judge URL below for reviewer access.
 
 ## Project Title
 
@@ -8,29 +8,38 @@ RecallOps — Evidence before resale
 
 ## Project Description
 
-RecallOps is an evidence-backed recall workspace for electronics resellers, repair teams and equipment owners. Its catalogue contains actual CPSC recall records with source links and retrieval dates. Operators import their own physical inventory and use Anakin to find and extract official notices. A deterministic TypeScript matcher compares each unit’s model, serial, variant and original purchase facts against grounded criteria. Missing or conflicting evidence requires review. Affected units receive an internal hold and staff tasks, with exportable action packets and an audit trail. React and TypeScript run through Vinext and Nitro on Node.js 24, on Vercel and Turso for persistent SQLite-compatible storage. Public notices are separate from inventory protected by an owner session. The normal application contains no synthetic inventory; controlled cases are restricted to isolated local tests. Settings displays actual integration configuration and lets the owner adjust table spacing. Built by sole contributor Sree24-ui.
+RecallOps helps electronics resellers, repair teams and equipment owners turn official recall evidence into decisions about physical units. The public judge portal opens without an account or owner key. Reviewers can inspect a dated official INIU notice and its preserved Anakin extraction, add their own real unit facts manually or by CSV, compare those facts with the same deterministic TypeScript matcher used by the owner workspace, and download evidence JSON, inventory results and local hold CSVs. Missing facts remain in review. Judge inventory stays in the visitor’s browser tab; the portal does not make fresh provider calls or access owner data. A separate public catalogue contains five dated CPSC API records. The protected owner workspace supports fresh Anakin investigations, persistent inventory, internal holds and tasks, action packets and audit history. React and TypeScript run through Vinext, Vite and Nitro on Node.js 24, deployed on Vercel with Turso storage. No physical inventory is prefilled or invented. Built by sole contributor Sree24-ui.
 
 ## Project Github link
 
 https://github.com/Sree24-ui/RecallOps
 
-## Explain where Anakin is used
+## Explain in detail where you used Anakin
 
-Anakin provides the server-side discovery, retrieval and enrichment layer. Search submits product-identity queries and returns candidate official pages. URL Scraper uses asynchronous jobs to retrieve markdown and structured recall criteria. RecallOps validates the schema and checks the criteria against the retrieved text; the deterministic TypeScript matcher, rather than the LLM, determines each unit’s outcome. Fetched source text is preserved even when eligibility extraction fails. Source versions retain hashes, timestamps, labels and provider identifiers.
+Anakin powers the protected owner workspace’s discovery and extraction layer. Search submits product-identity queries to find candidate official pages. URL Scraper retrieves source text and structured recall criteria through asynchronous jobs. RecallOps validates the schema and grounds the criteria against the retrieved text before its deterministic TypeScript matcher determines unit outcomes. Source versions retain retrieval timestamps, content hashes and provider identifiers; rejected or conflicting extractions remain review issues.
 
-Wire discovers an Amazon product-details read action and can enrich a selected inventory record using supported listing fields. It never supplies an invented physical serial number or purchase history. Website Monitoring creates paused subscriptions, accepts manual checks, and supports independent source re-extraction and reassessment. The webhook receiver implements signature verification and event deduplication.
+Wire can enrich a selected unit with supported fields from a user-selected Amazon product listing. It does not invent a physical serial number or purchase history. Website Monitoring supports creating paused subscriptions, requesting manual checks and independent source re-extraction. The webhook receiver validates signatures and deduplicates events. Scheduled monitoring and end-to-end signed external webhook delivery remain unverified.
 
-Historical September 10–11 application verification recorded actual Search, Scraper, Wire and paused-monitor calls. Those checks used explicitly labelled sample physical records; the sample inventory is now archived and is not presented as real customer inventory. The normal and deployed workspaces start without synthetic units. The public catalogue is sourced directly from the official CPSC API and does not claim to be an Anakin call. No provider work is simulated in the updated video. Scheduled monitoring and end-to-end external signed-webhook delivery remain unverified. Provider errors and incomplete criteria remain visible as review issues.
+The public /judge portal makes this evidence workflow accessible without sharing the owner credential. It publishes one preserved INIU manufacturer rule and a linked CPSC notice from the earlier actual Anakin integration checks. Judges can inspect the source retrieval date, provider identifier, original source hash, inclusion and exclusion criteria, then run the same matcher on their own unit facts and download scoped reports. These are new local comparisons against saved evidence, not fresh Anakin calls. The public CPSC catalogue is fetched directly from the CPSC API and is not presented as Anakin output.
+
+Historical September 10–11 verification used real Search, Scraper, Wire and paused-monitor calls with explicitly labelled test units. Those units remain archived and are not loaded in production or in the public judge portal. The submission walkthrough shows the current public portal without fabricated inventory or simulated provider activity.
 
 ## Deployed Link
 
-https://recallops-nine.vercel.app
+https://recallops-nine.vercel.app/judge
 
-Check DEPLOYMENT-STATUS.md in the submission pack for the verified URL and access level before submitting.
+Judges can open Overview, Inventory, Investigations, Exports and Settings without a key. The owner-only fresh-provider workspace remains at /workspace; do not put the owner key in this form.
 
-## Fields that require your action
+## GitHub star screenshot
 
-- GitHub star screenshot: the form requests a screenshot after starring https://github.com/Anakin-Inc/anakin. No star or screenshot has been fabricated. Maximum upload size shown in the form: 10 MB.
-- Demo Video link: upload `video/RecallOps-demo.webm` to Drive, YouTube or Loom, enable viewer access, test the link, then paste that hosted link. A local file path is not a submission URL.
-- Social Media Post: review SOCIAL-DRAFTS.md, publish your chosen draft on LinkedIn or X with the required Anakin tag, then paste its URL. No post has been sent.
-- Review your personal/team information and submit the Google Form yourself.
+Upload your genuine screenshot showing https://github.com/Anakin-Inc/anakin starred by your account. The form allows one file up to 10 MB. No screenshot or star has been fabricated.
+
+## Demo Video link
+
+Upload video/RecallOps-demo.webm from this pack, or your own narrated recording of the current portal, to Drive, YouTube or Loom. Enable viewer access, verify it in a signed-out browser, and paste the resulting sharing URL here. A local path or ZIP link is not the required hosted video link.
+
+## Social Media Post
+
+Publish your reviewed post on LinkedIn or X, tag Anakin as required, and paste the actual post URL. See SOCIAL-DRAFTS.md. This field remains pending until you publish; no post was sent automatically.
+
+Review any personal/team details on earlier form pages and submit the form yourself.

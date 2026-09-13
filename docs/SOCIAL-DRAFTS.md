@@ -15,3 +15,5 @@ Built with React, TypeScript, Vercel and Turso for Anakin Forge. Tag the Anakin 
 Repository: https://github.com/Sree24-ui/RecallOps
 
 Review these drafts before posting. Add the deployed link after checking the verified access level in DEPLOYMENT-STATUS.md.
+
+The public judge portal opens without an owner key and offers saved official evidence, visitor-supplied inventory comparisons and exports. It makes no fresh provider calls. Include this distinction in any post about the demo.

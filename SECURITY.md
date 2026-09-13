@@ -34,3 +34,7 @@ See `docs/dependency-audit.json` for the measured dependency audit; development-
 ## Reporting
 
 Owner: Sree24-ui. Report issues privately to the repository owner; do not publish API keys, tokens, customer records or unredacted provider responses in an issue. No private security-report endpoint is claimed to be configured.
+
+## Public judge portal
+
+`/judge` is a separate browser-only evaluation surface. Its static evidence is a curated saved official notice and validated Anakin rule, with provenance. It does not call owner APIs, access Turso, read owner credentials, or initiate paid provider work. Visitor CSVs and manually entered units remain in tab session storage. Session restoration validates inventory and recomputes decisions; exports label the saved-source scope and neutralize CSV formula prefixes. Visitor data is not trusted as owner inventory or uploaded automatically. The owner session and API authorization boundaries are unchanged.

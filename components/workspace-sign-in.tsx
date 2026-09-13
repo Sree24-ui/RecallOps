@@ -1,6 +1,6 @@
-'use client';
-import Link from 'next/link';
-import { useState } from 'react';
+"use client";
+import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,13 +12,13 @@ import {
   LockKeyhole,
   PackageCheck,
   ShieldCheck,
-} from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export type WorkspaceSession = {
   authenticated: boolean;
-  mode: 'local' | 'operator' | 'unconfigured';
+  mode: "local" | "operator" | "unconfigured";
   expiresAt?: string;
 };
 export function WorkspaceSignIn({
@@ -36,7 +36,7 @@ export function WorkspaceSignIn({
   onSubmit: (key: string) => Promise<void>;
   onRetry: () => void;
 }) {
-  const [key, setKey] = useState('');
+  const [key, setKey] = useState("");
   const [visible, setVisible] = useState(false);
   return (
     <div className="access-page">
@@ -91,12 +91,18 @@ export function WorkspaceSignIn({
             <Fingerprint aria-hidden="true" size={30} />
           </div>
           <div className="access-eyebrow">Private workspace</div>
+          <p>
+            Reviewing the project?{" "}
+            <Link href="/judge">
+              Open the public judge portal — no key needed →
+            </Link>
+          </p>
           <h2 id="access-title">
             {checking
-              ? 'Checking your session'
+              ? "Checking your session"
               : unavailable
-                ? 'Workspace setup needed'
-                : 'Welcome back'}
+                ? "Workspace setup needed"
+                : "Welcome back"}
           </h2>
           {checking ? (
             <output className="access-checking">
@@ -124,14 +130,14 @@ export function WorkspaceSignIn({
                   event.preventDefault();
                   if (!key.trim() || submitting) return;
                   await onSubmit(key.trim());
-                  setKey('');
+                  setKey("");
                 }}
               >
                 <label htmlFor="owner-access-key">Owner access key</label>
                 <div className="access-input">
                   <Input
                     id="owner-access-key"
-                    type={visible ? 'text' : 'password'}
+                    type={visible ? "text" : "password"}
                     value={key}
                     onChange={(event) => setKey(event.target.value)}
                     autoComplete="current-password"
@@ -145,7 +151,7 @@ export function WorkspaceSignIn({
                   <button
                     type="button"
                     onClick={() => setVisible(!visible)}
-                    aria-label={visible ? 'Hide access key' : 'Show access key'}
+                    aria-label={visible ? "Hide access key" : "Show access key"}
                     disabled={submitting}
                   >
                     {visible ? <EyeOff size={18} /> : <Eye size={18} />}

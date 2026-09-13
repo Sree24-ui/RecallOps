@@ -1,3 +1,9 @@
+## Public judge access update — September 13, 2026
+
+Use https://recallops-nine.vercel.app/judge for submission. Overview, Inventory, Investigations, Exports and Settings open without a key. This is a browser session workspace using one saved official INIU rule and its CPSC link. It starts with no physical units; visitors may supply actual unit facts and run the shared matcher. Evidence JSON is available immediately; CSV results depend on session inventory. Fresh provider work, persistent owner tasks and monitoring remain in the private /workspace.
+
+The updated video shows this public portal and contains no synthetic inventory or fresh provider activity. Use DEMO-SCRIPT.md for the narrated walkthrough. The README no longer contains a submission section. The earlier verification details below remain scoped to their recorded release; current release evidence is in manifest.json and evidence/public-judge-verification.json.
+
 # Submission readiness
 
 - Public repository: https://github.com/Sree24-ui/RecallOps. Sole contributor: Sree24-ui.

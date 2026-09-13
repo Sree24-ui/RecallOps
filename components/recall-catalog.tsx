@@ -1,6 +1,6 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
+"use client";
+import { useState } from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   Search,
@@ -8,14 +8,14 @@ import {
   ArrowRight,
   FileCheck2,
   PackageSearch,
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import catalog from '@/data/official-recalls.json';
-import { filterRecalls, recallNumber } from '@/lib/ui/catalog';
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import catalog from "@/data/official-recalls.json";
+import { filterRecalls, recallNumber } from "@/lib/ui/catalog";
 
 export function RecallCatalog() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const records = filterRecalls(catalog.records, query);
   const verified = catalog.records.map((r) => r.retrievedAt).sort()[0];
   return (
@@ -28,8 +28,8 @@ export function RecallCatalog() {
           <ShieldCheck />
           RecallOps
         </Link>
-        <Link className="catalog-workspace" href="/workspace">
-          Operator workspace <ArrowUpRight size={18} />
+        <Link className="catalog-workspace" href="/judge">
+          Open judge portal <ArrowUpRight size={18} />
         </Link>
       </header>
       <main className="catalog-main">
@@ -51,15 +51,15 @@ export function RecallCatalog() {
             <FileCheck2 size={28} />
             <strong>{catalog.records.length} official notices</strong>
             <span>
-              Retrieved{' '}
+              Retrieved{" "}
               {verified
-                ? new Date(verified).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    timeZone: 'UTC',
+                ? new Date(verified).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    timeZone: "UTC",
                   })
-                : '—'}
+                : "—"}
             </span>
             <a href={catalog.sourceUrl} target="_blank" rel="noreferrer">
               About the CPSC data <ArrowUpRight size={15} />
@@ -82,7 +82,7 @@ export function RecallCatalog() {
             placeholder="Search brand, model or recall number"
           />
           {query && (
-            <Button variant="ghost" onClick={() => setQuery('')}>
+            <Button variant="ghost" onClick={() => setQuery("")}>
               Clear
             </Button>
           )}
@@ -110,19 +110,19 @@ export function RecallCatalog() {
                 <div className="catalog-card-meta">
                   <span>CPSC {recallNumber(r.number)}</span>
                   <time dateTime={r.date}>
-                    {new Date(r.date + 'T00:00:00Z').toLocaleDateString(
-                      'en-US',
+                    {new Date(r.date + "T00:00:00Z").toLocaleDateString(
+                      "en-US",
                       {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        timeZone: 'UTC',
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        timeZone: "UTC",
                       },
                     )}
                   </time>
                 </div>
-                <h3>{r.products.join(' · ') || r.title}</h3>
-                <p className="catalog-hazard">{r.hazards.join(' ')}</p>
+                <h3>{r.products.join(" · ") || r.title}</h3>
+                <p className="catalog-hazard">{r.hazards.join(" ")}</p>
                 <details>
                   <summary>Product details & remedy</summary>
                   <div className="catalog-detail">
@@ -159,7 +159,7 @@ export function RecallCatalog() {
                 Try another spelling or use the full CPSC recall search above.
                 An empty result does not establish that a product is safe.
               </p>
-              <Button variant="outline" onClick={() => setQuery('')}>
+              <Button variant="outline" onClick={() => setQuery("")}>
                 Clear search
               </Button>
             </div>
@@ -167,15 +167,15 @@ export function RecallCatalog() {
         </section>
         <section className="catalog-next">
           <div>
-            <h2>Have a physical unit to check?</h2>
+            <h2>Explore the RecallOps workflow</h2>
             <p>
-              Import your own inventory, investigate official evidence with
-              Anakin, then review serial, model and purchase criteria before
-              taking action.
+              Open the public judge portal without a key. Inspect saved official
+              evidence, compare your own unit facts, and download a report.
+              Fresh Anakin investigations remain in the owner workspace.
             </p>
           </div>
-          <Link href="/workspace">
-            Open operator workspace <ArrowRight size={18} />
+          <Link href="/judge">
+            Explore judge portal <ArrowRight size={18} />
           </Link>
         </section>
       </main>

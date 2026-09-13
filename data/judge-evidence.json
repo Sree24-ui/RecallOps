@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "scope": "One preserved INIU manufacturer recall rule with its linked CPSC notice. Browser evaluation only; no fresh discovery or provider request. Check the original notices before acting.",
+  "records": [
+    {
+      "id": "0402a395-468b-4873-822c-b834f0cb9aa0",
+      "title": "INIU's Voluntary Recall Notice for Specific Batches BI-B41 10,000mAh Power Banks in the U.S.",
+      "noticeId": "CPSC 26-135 / INIU BI-B41",
+      "url": "https://iniushop.com/pages/recall-b41",
+      "supportingUrl": "https://www.cpsc.gov/Recalls/2026/INIU-Recalls-Power-Banks-Due-to-Fire-and-Burn-Hazards-Sold-on-Amazon",
+      "retrievedAt": "2026-09-10T17:31:07.762Z",
+      "extractedAt": "2026-09-11T03:50:56.084Z",
+      "providerId": "b164b52e-c737-47f3-9220-89bf1ce573ea",
+      "contentHash": "6de1cda0b63fab4ba8da01c7bd5bcdd202e9f25ce525f01a96ccbd664efad13a",
+      "provenance": "Archived Anakin source retrieval metadata and validated rule extraction. The provider ID identifies the saved retrieval, not a new judge-session request. Original source hash; only criteria excerpts are republished.",
+      "rule": {
+        "schemaVersion": "1",
+        "noticeId": "INIU-B41-2022",
+        "title": "INIU's Voluntary Recall Notice for Specific Batches BI-B41 10,000mAh Power Banks in the U.S.",
+        "brand": "INIU",
+        "models": [
+          "BI-B41"
+        ],
+        "scopeEvidence": "The affected products include the INIU 10000mAh 5V/3A Power Bank **(Model BI-B41)\u00a0in Black and Blue**, which were **sold exclusively on Amazon\u00a0USA\u00a0between August 2021 and April 2022.**\u00a0This recall is limited only to units bearing the following serial numbers: **\u201c000G21\u201d, \u201c000H21\u201d, \u201c000I21\u201d, and \u201c000L21\u201d.**",
+        "conditions": {
+          "kind": "any",
+          "children": [
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "1",
+                  "field": "model",
+                  "op": "model_equals",
+                  "values": [
+                    "BI-B41"
+                  ],
+                  "evidence": "Model BI-B41"
+                },
+                {
+                  "kind": "condition",
+                  "id": "2",
+                  "field": "color",
+                  "op": "in",
+                  "values": [
+                    "Black",
+                    "Blue"
+                  ],
+                  "evidence": "in Black and Blue"
+                },
+                {
+                  "kind": "condition",
+                  "id": "3",
+                  "field": "retailer",
+                  "op": "equals",
+                  "values": [
+                    "Amazon"
+                  ],
+                  "evidence": "sold exclusively on Amazon USA"
+                },
+                {
+                  "kind": "condition",
+                  "id": "4",
+                  "field": "purchaseCountry",
+                  "op": "equals",
+                  "values": [
+                    "USA"
+                  ],
+                  "evidence": "sold exclusively on Amazon USA"
+                },
+                {
+                  "kind": "condition",
+                  "id": "5",
+                  "field": "originalPurchaseDate",
+                  "op": "date_range",
+                  "values": [
+                    "2021-08",
+                    "2022-04"
+                  ],
+                  "evidence": "between August 2021 and April 2022",
+                  "precision": "month"
+                },
+                {
+                  "kind": "condition",
+                  "id": "6",
+                  "field": "serial",
+                  "op": "in",
+                  "values": [
+                    "000G21",
+                    "000H21",
+                    "000I21",
+                    "000L21"
+                  ],
+                  "evidence": "serial numbers: **\u201c000G21\u201d, \u201c000H21\u201d, \u201c000I21\u201d, and \u201c000L21\u201d"
+                }
+              ]
+            }
+          ]
+        },
+        "exclusions": {
+          "kind": "any",
+          "children": [
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E1",
+                  "field": "model",
+                  "op": "not_in",
+                  "values": [
+                    "BI-B41"
+                  ],
+                  "evidence": "Model is NOT **BI-B41**"
+                }
+              ]
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E2",
+                  "field": "color",
+                  "op": "in",
+                  "values": [
+                    "Red",
+                    "Orange"
+                  ],
+                  "evidence": "Color is **Red** or **Orange**"
+                }
+              ]
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E3",
+                  "field": "retailer",
+                  "op": "not_in",
+                  "values": [
+                    "Amazon"
+                  ],
+                  "evidence": "Purchased **outside of Amazon USA**"
+                }
+              ]
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E4",
+                  "field": "purchaseCountry",
+                  "op": "not_in",
+                  "values": [
+                    "USA"
+                  ],
+                  "evidence": "Purchased **outside of Amazon USA**"
+                }
+              ]
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E5",
+                  "field": "serial",
+                  "op": "suffix",
+                  "values": [
+                    "25",
+                    "24",
+                    "23",
+                    "22",
+                    "20",
+                    "19",
+                    "18",
+                    "17"
+                  ],
+                  "evidence": "Serial Number ends with **\"25\", \"24\", \"23\", \"22\", \"20\", \u201c19\u201d, \u201c18\u201d, or \u201c17\u201d**"
+                }
+              ]
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "condition",
+                  "id": "E6",
+                  "field": "retailer",
+                  "op": "equals",
+                  "values": [
+                    "Woot"
+                  ],
+                  "evidence": "We have confirmed that none of the SKUs sold through Woot are part of the affected batch."
+                }
+              ]
+            }
+          ]
+        },
+        "unresolved": [],
+        "hazard": "potential overheating risk",
+        "immediateAction": "Stop using the power bank immediately. Please stop using the power bank and keep it separately in a cool, dry place until you receive confirmation from INIU that it qualifies for the recall program.",
+        "remedy": "If your product is confirmed to meet the recall criteria, we will promptly process your refund or gift card. You will receive compensation equal to your original purchase amount, which can be issued as a refund or an Amazon gift card.",
+        "proof": [
+          "photo of the product",
+          "proof of purchase"
+        ],
+        "contact": "Email (Primary): recall@iniu.shop Phone (US): +1 (888) 886-3606 Phone Hours: Monday - Friday, 9:00 AM - 6:00 PM U.S. EST",
+        "claimUrl": "https://b41recall.iniushop.com/",
+        "informationEvidence": "The affected products include the INIU 10000mAh 5V/3A Power Bank **(Model BI-B41)\u00a0in Black and Blue**, which were **sold exclusively on Amazon\u00a0USA\u00a0between August 2021 and April 2022.**\u00a0This recall is limited only to units bearing the following serial numbers: **\u201c000G21\u201d, \u201c000H21\u201d, \u201c000I21\u201d, and \u201c000L21\u201d.**"
+      },
+      "excerpt": "The affected products include the INIU 10000mAh 5V/3A Power Bank **(Model BI-B41)\u00a0in Black and Blue**, which were **sold exclusively on Amazon\u00a0USA\u00a0between August 2021 and April 2022.**\u00a0This recall is limited only to units bearing the following serial numbers: **\u201c000G21\u201d, \u201c000H21\u201d, \u201c000I21\u201d, and \u201c000L21\u201d.**"
+    }
+  ]
+}
