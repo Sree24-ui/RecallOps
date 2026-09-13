@@ -4,7 +4,7 @@ RecallOps helps electronics teams turn official recall evidence into decisions a
 
 [GitHub](https://github.com/Sree24-ui/RecallOps) · [Live website](https://recallops-nine.vercel.app)
 
-![Official CPSC recall catalogue](docs/screenshots/catalog-desktop.png)
+![Public RecallOps judge portal](docs/screenshots/public-judge-desktop.png)
 
 ## What you can do
 

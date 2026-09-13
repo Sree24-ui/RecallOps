@@ -1,19 +1,20 @@
 # Social drafts — not posted
 
-## X
+## X (copy after reviewing)
 
-Built RecallOps for Anakin Forge: official recall evidence meets unit-level inventory checks. Anakin finds and extracts notices; deterministic rules surface affected units and missing facts. @anakinHQ
+I built RecallOps for Anakin Forge: official recall evidence, traceable unit checks and exports. Try the no-key judge portal using saved Anakin evidence and your own unit facts. @anakinHQ
+https://recallops-nine.vercel.app/judge
 
-https://github.com/Sree24-ui/RecallOps
+## LinkedIn (copy after reviewing)
 
-## LinkedIn
+I built RecallOps for Anakin Forge to help electronics teams connect official recall notices with physical unit facts. Anakin Search and URL Scraper retrieve evidence; deterministic TypeScript rules compare grounded criteria and keep missing information in review.
 
-I built RecallOps, a recall-investigation workspace for electronics teams. It separates real public CPSC notices from physical inventory and uses Anakin Search and URL Scraper to retrieve grounded evidence. Deterministic checks explain unit-level eligibility, while internal holds, tasks and action packets support the next step. Missing facts remain in review.
+The public judge portal is open without an owner key: inspect a preserved official INIU extraction, add your own real unit facts, run a comparison and download a source-backed report. This evaluation uses saved evidence and does not make fresh provider calls. The protected owner workspace supports live investigations, persistent inventory, holds, tasks and audit history.
 
-Built with React, TypeScript, Vercel and Turso for Anakin Forge. Tag the Anakin company page using LinkedIn’s mention picker: https://www.linkedin.com/company/anakintech
+Built with React, TypeScript, Vercel and Turso.
+Try it: https://recallops-nine.vercel.app/judge
+Source: https://github.com/Sree24-ui/RecallOps
 
-Repository: https://github.com/Sree24-ui/RecallOps
+Before publishing, use LinkedIn’s mention picker to tag Anakin: https://www.linkedin.com/company/anakintech
 
-Review these drafts before posting. Add the deployed link after checking the verified access level in DEPLOYMENT-STATUS.md.
-
-The public judge portal opens without an owner key and offers saved official evidence, visitor-supplied inventory comparisons and exports. It makes no fresh provider calls. Include this distinction in any post about the demo.
+After publishing, paste the actual post URL into the form. Neither draft has been posted automatically.

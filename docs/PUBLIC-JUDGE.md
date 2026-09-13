@@ -24,3 +24,5 @@ The portal has no owner API, database, session-key or provider-client dependency
 The public portal is covered by unit tests for input bounds, duplicate tags, evidence grounding, missing facts, monotonic holds, untrusted storage restoration and JSON/CSV exports. Browser tests exercise no-key navigation, absence of private API requests, manual assessment, reload persistence, separate visitor contexts, immediate reload after clearing, invalid CSV replacement and mobile layouts.
 
 Owner API access must still return 401 when unauthenticated. Public portal access must never require distributing the owner key. The deployment verification and recording are kept in the separate release pack.
+
+Live verification on September 13, 2026 confirmed all five public screens, working evidence downloads, local matcher execution, reload persistence, visitor isolation, immediate clearing, mobile layouts and no browser errors. The judge UI made zero private API requests; anonymous owner workspace and export requests still returned 401.
