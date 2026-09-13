@@ -99,6 +99,14 @@ export type Data = {
     keyConfigured: boolean;
     webhookConfigured: boolean;
     coverage: string;
+    deployment?: 'hosted' | 'local';
+    approvedHosts?: string[];
+    investigationLimits?: {
+      groups: number;
+      sourcesPerGroup: number;
+      items: number;
+    };
+    providerDurationMs?: number;
   };
 };
 

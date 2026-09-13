@@ -250,7 +250,7 @@ export class Workflow {
             created_at: now(),
             payload: JSON.stringify({
               title,
-              owner: 'Local operator',
+              owner: 'Workspace operator',
               priority: decision.status === 'affected' ? 'urgent' : 'high',
               dueDate: new Date(Date.now() + 86400000)
                 .toISOString()

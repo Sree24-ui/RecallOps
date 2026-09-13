@@ -14,7 +14,15 @@ RecallOps helps electronics teams turn official recall evidence into decisions a
 - Compare unit facts with evidence using a deterministic TypeScript matcher. Review affected, excluded, unresolved or no-notice results with an explanation.
 - Maintain internal holds and staff tasks, export action packets, and manually run paused official-source monitors.
 
-Public catalogue requests neither read the inventory database nor call paid providers. Remote inventory, task, export and mutation APIs require an operator token. Enter it in Workspace → Settings; it stays in the tab's memory. This is a single-operator prototype, not a multi-tenant service.
+Public catalogue requests neither read the inventory database nor call paid providers. Open Operator workspace and sign in with the owner access key from your private owner-access file. The browser receives a signed, 12-hour HttpOnly session cookie, so refreshing keeps you signed in. Sign out in Settings. The access key is never saved in browser storage; explicit bearer access remains available for API clients. This is a single-operator prototype, not a multi-tenant service.
+
+## Workspace access and settings
+
+The workspace opens with a clear owner sign-in screen. Settings shows session expiry, actual integration configuration, approved sources and current limits. Table spacing switches between Comfortable and Compact; Wire enrichment lives in each unit’s case.
+
+![Owner sign-in](docs/screenshots/sign-in-desktop.png)
+
+[Desktop settings](docs/screenshots/settings-desktop.png) · [Mobile settings](docs/screenshots/settings-mobile.png)
 
 ## Real data and its limits
 
@@ -50,7 +58,7 @@ Set `ANAKIN_API_KEY` in the ignored `.dev.vars` file for live investigations, th
 | Configuration | Purpose |
 | --- | --- |
 | `ANAKIN_API_KEY` | Server-side Anakin REST credential |
-| `OPERATOR_TOKEN` | Required bearer token for remote operator APIs |
+| `OPERATOR_TOKEN` | Owner sign-in key and session-signing secret; also supports bearer API clients |
 | `PUBLIC_BASE_URL` | Actual deployed HTTPS origin for monitor callbacks |
 | `TURSO_DATABASE_URL` | Persistent `libsql://` database on Vercel; optional local `file:` override |
 | `TURSO_AUTH_TOKEN` | Server-only credential for the hosted Turso database |
@@ -64,6 +72,10 @@ PORT=3001 npm start
 ```
 
 Stop the development server before starting another server on the same port. The local production server uses the same `.dev.vars` configuration and database.
+
+## Workspace settings
+
+Settings reports actual workspace counts, Anakin configuration, session expiry, approved source domains and investigation limits. Choose Comfortable or Compact table spacing; only that nonsecret preference is saved in browser storage. Amazon listing enrichment is available inside the selected unit’s case. Signed-out visitors see an access screen rather than a workspace failure.
 
 ## How it runs
 
@@ -96,6 +108,17 @@ TURSO_DATABASE_URL=file:.data/e2e.sqlite ENABLE_TEST_FIXTURES=true PORT=3002 npm
 # In another terminal:
 npm run test:e2e
 ```
+
+To run the four additional owner-session browser checks, start another server with a separate empty database and a disposable test key:
+
+```sh
+TURSO_DATABASE_URL=file:.data/session-e2e.sqlite npm run db:migrate
+TURSO_DATABASE_URL=file:.data/session-e2e.sqlite ENABLE_TEST_FIXTURES=false OPERATOR_TOKEN=recallops-isolated-e2e-owner-key PORT=3003 npm start
+# With both test servers running:
+RECALLOPS_AUTH_URL=http://0.0.0.0:3003 RECALLOPS_TEST_ACCESS_KEY=recallops-isolated-e2e-owner-key npm run test:e2e
+```
+
+Using 0.0.0.0 instead of localhost exercises remote authentication on the local test server without changing production credentials. These checks include intentionally invalid attempts; the test session may be throttled for up to one minute afterward.
 
 Keep the E2E database separate from normal inventory. Tests include raw source validation failures, deferred scans, archived inventory, test-mode isolation, public data provenance, imports, source grounding, task conflicts, signature validation and browser interactions. `test:libsql` exercises the database adapter against isolated temporary SQLite files. Controlled matcher evaluations are not claims of live extraction accuracy. The live integration test is credential-gated and makes paid provider requests only when explicitly run.
 

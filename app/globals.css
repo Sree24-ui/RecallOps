@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import './workspace-access.css';
+@import './workspace-settings.css';
 @custom-variant dark (&:is(.dark *));
 :root {
   --background: #f4f7f9;

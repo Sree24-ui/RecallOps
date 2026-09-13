@@ -2,7 +2,7 @@
 
 1. Open the site. Search the official CPSC catalogue by a brand, model or recall number.
 2. Expand a notice to show the actual description and remedy. Open its CPSC link and point out the dated data snapshot.
-3. Open Operator workspace. The production inventory starts empty; it does not invent physical units from recall notices.
+3. Open Operator workspace and sign in with your owner access key. Keep the key off-screen when recording. Refresh to show the session persists, then open Settings to show actual configuration and display preferences. The production inventory starts empty; it does not invent physical units from recall notices.
 4. In Import review, download the blank CSV template. Supply your own unit identifiers and original purchase facts, review the rows, then import.
 5. In Investigation, select an actual product group and run Anakin. This makes real provider calls. Do not import fabricated values to manufacture an affected result.
 6. Inspect the returned source, criteria and assessment. Incomplete criteria or missing facts require review. Affected units receive an internal hold and tasks.

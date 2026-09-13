@@ -65,6 +65,14 @@ import {
 } from '@/lib/core/rules';
 import { MAX_CSV_BYTES, MAX_ROWS } from '@/lib/core/csv';
 import { investigationLimits } from '@/lib/core/runtime-policy';
+import {
+  WorkspaceSignIn,
+  type WorkspaceSession,
+} from '@/components/workspace-sign-in';
+import {
+  WorkspaceSettings,
+  type WorkspaceDensity,
+} from '@/components/workspace-settings';
 import { WorkspaceOverview } from '@/components/workspace-overview';
 import {
   assessmentNames as names,
@@ -87,6 +95,7 @@ const screenNames = {
   settings: 'Settings',
 };
 type Screen = keyof typeof screenNames;
+const INVENTORY_PAGE_SIZE = 20;
 function Status({ status }: { status?: AssessmentState }) {
   return status ? (
     <span className={`badge ${status}`} title={status}>
@@ -235,14 +244,18 @@ export default function Page() {
     [connectionError, setConnectionError] = useState(''),
     [lastUpdated, setLastUpdated] = useState(''),
     [reviewedCsv, setReviewedCsv] = useState(''),
-    [tokenDraft, setTokenDraft] = useState(''),
     [investigationGroup, setInvestigationGroup] = useState('all'),
     [csv, setCsv] = useState(''),
     [preview, setPreview] = useState<Inventory[] | null>(null),
     [asin, setAsin] = useState(''),
     [monitorUrl, setMonitorUrl] = useState(''),
-    [token, setToken] = useState(''),
     [elapsed, setElapsed] = useState(0);
+  const [session, setSession] = useState<WorkspaceSession | null>(null);
+  const [sessionError, setSessionError] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [density, setDensity] = useState<WorkspaceDensity>('comfortable');
+  const sessionGeneration = useRef(0);
   const fetchGeneration = useRef(0);
   const requestsInFlight = useRef(0);
   function setSearch(value: string) {
@@ -258,12 +271,126 @@ export default function Page() {
     setPage(1);
   }
   const headers = useCallback(
-    () => ({
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }),
-    [token],
+    () => ({ 'Content-Type': 'application/json' }),
+    [],
   );
+  const clearWorkspace = useCallback(() => {
+    fetchGeneration.current++;
+    setData(null);
+    setLastUpdated('');
+    setRefreshing(false);
+    setBusy('');
+    setSelected('');
+    setSourceId('');
+    updateSearch('');
+    updateFilter('all');
+    setInvestigationGroup('all');
+    setScreen('overview');
+    setCsv('');
+    setPreview(null);
+    setReviewedCsv('');
+    setAsin('');
+    setMonitorUrl('');
+    setError('');
+    setIssues([]);
+    setMessage('');
+    setConnectionError('');
+  }, []);
+  const expireSession = useCallback(() => {
+    clearWorkspace();
+    setSession((current) => ({
+      authenticated: false,
+      mode: current?.mode ?? 'operator',
+    }));
+    setSessionError('Your session has ended. Sign in again to continue.');
+  }, [clearWorkspace]);
+  const checkSession = useCallback(async () => {
+    const generation = ++sessionGeneration.current;
+    setSessionError('');
+    try {
+      const res = await fetch('/api/session', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+      if (!res.ok)
+        throw Error('Unable to check workspace access. Please try again.');
+      const next = (await res.json()) as WorkspaceSession;
+      if (
+        typeof next.authenticated !== 'boolean' ||
+        !['local', 'operator', 'unconfigured'].includes(next.mode)
+      )
+        throw Error('Unable to check workspace access. Please try again.');
+      if (generation === sessionGeneration.current) setSession(next);
+    } catch (e) {
+      if (generation === sessionGeneration.current)
+        setSessionError(
+          e instanceof Error ? e.message : 'Unable to check workspace access.',
+        );
+    }
+  }, []);
+  useEffect(() => {
+    void Promise.resolve().then(checkSession);
+  }, [checkSession]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      try {
+        if (localStorage.getItem('recallops-density') === 'compact')
+          setDensity('compact');
+      } catch {
+        /* Preferences are optional. */
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  function changeDensity(value: WorkspaceDensity) {
+    setDensity(value);
+    try {
+      localStorage.setItem('recallops-density', value);
+    } catch {
+      /* Keep the current tab usable if storage is unavailable. */
+    }
+  }
+  async function signIn(key: string) {
+    setSigningIn(true);
+    setSessionError('');
+    sessionGeneration.current++;
+    try {
+      const res = await fetch('/api/session', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: headers(),
+        body: JSON.stringify({ token: key }),
+      });
+      const next = (await res.json()) as WorkspaceSession & { error?: string };
+      if (!res.ok)
+        throw Error(next.error ?? 'Unable to sign in. Please try again.');
+      setSession(next as WorkspaceSession);
+    } catch (e) {
+      setSessionError(e instanceof Error ? e.message : 'Unable to sign in.');
+    } finally {
+      setSigningIn(false);
+    }
+  }
+  async function signOut() {
+    setSigningOut(true);
+    sessionGeneration.current++;
+    try {
+      const res = await fetch('/api/session', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      const next = (await res.json()) as WorkspaceSession & { error?: string };
+      if (!res.ok)
+        throw Error(next.error ?? 'Unable to sign out. Please try again.');
+      clearWorkspace();
+      setSession(next as WorkspaceSession);
+      setSessionError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to sign out.');
+    } finally {
+      setSigningOut(false);
+    }
+  }
   const refresh = useCallback(async () => {
     const generation = ++fetchGeneration.current;
     requestsInFlight.current++;
@@ -271,6 +398,10 @@ export default function Page() {
     try {
       const res = await fetch('/api/workspace', { headers: headers() });
       const d = (await res.json()) as Data & { error?: string };
+      if (res.status === 401) {
+        if (generation === fetchGeneration.current) expireSession();
+        throw Error('Sign in to continue.');
+      }
       if (!res.ok) throw Error(d.error ?? 'Unable to load workspace');
       if (generation === fetchGeneration.current) {
         setData(d);
@@ -288,12 +419,13 @@ export default function Page() {
       requestsInFlight.current--;
       if (generation === fetchGeneration.current) setRefreshing(false);
     }
-  }, [headers]);
+  }, [headers, expireSession]);
   useEffect(() => {
+    if (!session?.authenticated) return;
     void Promise.resolve()
       .then(refresh)
       .catch(() => {});
-  }, [refresh]);
+  }, [refresh, session?.authenticated]);
   useEffect(() => {
     const restore = () => {
       const state = new URLSearchParams(window.location.hash.slice(1));
@@ -333,7 +465,7 @@ export default function Page() {
     window.history.replaceState(null, '', '#' + state.toString());
   }, [routeReady, screen, selected, sourceId, filter, search]);
   useEffect(() => {
-    if (busy) return;
+    if (busy || !session?.authenticated) return;
     const update = () => {
       if (document.visibilityState === 'visible' && !requestsInFlight.current)
         void refresh().catch(() => {});
@@ -344,7 +476,7 @@ export default function Page() {
       clearInterval(timer);
       window.removeEventListener('focus', update);
     };
-  }, [busy, refresh]);
+  }, [busy, refresh, session?.authenticated]);
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const heading = document.querySelector<HTMLElement>('main h1');
@@ -403,6 +535,10 @@ export default function Page() {
         [key: string]: unknown;
       };
       if (!res.ok) {
+        if (res.status === 401) {
+          expireSession();
+          return null;
+        }
         if (res.status === 409) await refresh().catch(() => {});
         throw Error(result.error ?? 'Action failed');
       }
@@ -462,9 +598,12 @@ export default function Page() {
       holds: inventory.filter((x) => x.quarantined).length,
     };
   const filtered = filterInventory(inventory, search, filter, sort);
-  const pages = Math.max(1, Math.ceil(filtered.length / 20));
+  const pages = Math.max(1, Math.ceil(filtered.length / INVENTORY_PAGE_SIZE));
   const currentPage = Math.min(page, pages);
-  const visibleRows = filtered.slice((currentPage - 1) * 20, currentPage * 20);
+  const visibleRows = filtered.slice(
+    (currentPage - 1) * INVENTORY_PAGE_SIZE,
+    currentPage * INVENTORY_PAGE_SIZE,
+  );
   function applyFilter(value: string) {
     setFilter(value);
     setSearch('');
@@ -507,6 +646,10 @@ export default function Page() {
         `/api/export?type=${type}${forItem ? `&itemId=${forItem}` : ''}`,
         { headers: headers() },
       );
+      if (res.status === 401) {
+        expireSession();
+        return;
+      }
       if (!res.ok) throw Error(((await res.json()) as { error: string }).error);
       const blob = await res.blob(),
         url = URL.createObjectURL(blob),
@@ -520,6 +663,18 @@ export default function Page() {
       setError(String(e));
     }
   }
+
+  if (!session?.authenticated)
+    return (
+      <WorkspaceSignIn
+        checking={!session && !sessionError}
+        unavailable={session?.mode === 'unconfigured'}
+        error={sessionError}
+        submitting={signingIn}
+        onSubmit={signIn}
+        onRetry={() => void checkSession()}
+      />
+    );
 
   return (
     <SidebarProvider>
@@ -587,7 +742,11 @@ export default function Page() {
             </Button>
           </div>
         </header>
-        <div className="workspace" id="main-content" tabIndex={-1}>
+        <div
+          className={`workspace ${density === 'compact' ? 'workspace-density-compact' : ''}`}
+          id="main-content"
+          tabIndex={-1}
+        >
           {connectionError && (
             <div role="alert" className="notice error connection-notice">
               <div>
@@ -606,9 +765,13 @@ export default function Page() {
               >
                 Retry connection
               </Button>
-              {!data && (
-                <Button variant="ghost" onClick={() => navigate('settings')}>
-                  Connection settings
+              {!data && session.mode === 'operator' && (
+                <Button
+                  variant="ghost"
+                  disabled={signingOut}
+                  onClick={() => void signOut()}
+                >
+                  {signingOut ? 'Signing out…' : 'Sign out'}
                 </Button>
               )}
             </div>
@@ -891,9 +1054,12 @@ export default function Page() {
                     {filtered.length > 0 && (
                       <div className="pagination">
                         <span>
-                          Showing {(currentPage - 1) * 20 + 1}–
-                          {Math.min(currentPage * 20, filtered.length)} of{' '}
-                          {filtered.length} units
+                          Showing {(currentPage - 1) * INVENTORY_PAGE_SIZE + 1}–
+                          {Math.min(
+                            currentPage * INVENTORY_PAGE_SIZE,
+                            filtered.length,
+                          )}{' '}
+                          of {filtered.length} units
                         </span>
                         <div className="actions">
                           <Button
@@ -1169,9 +1335,9 @@ export default function Page() {
                       )}
                     {!data?.health.keyConfigured && (
                       <div className="notice warning">
-                        Configure ANAKIN_API_KEY server-side in .dev.vars. A
-                        missing key will be recorded as an integration failure,
-                        with affected records sent to review.
+                        Anakin is not configured for this workspace. A missing
+                        key will be recorded as an integration failure, with
+                        affected records sent to review.
                       </div>
                     )}
                   </section>
@@ -1298,14 +1464,108 @@ export default function Page() {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            setAsin('');
-                            navigate('settings');
+                            const section =
+                              document.getElementById('unit-enrichment');
+                            if (section instanceof HTMLDetailsElement) {
+                              section.open = true;
+                              section.scrollIntoView({
+                                behavior: window.matchMedia(
+                                  '(prefers-reduced-motion: reduce)',
+                                ).matches
+                                  ? 'instant'
+                                  : 'smooth',
+                                block: 'start',
+                              });
+                              section
+                                .querySelector('input')
+                                ?.focus({ preventScroll: true });
+                            }
                           }}
                         >
                           Enrich this unit <ArrowUpRight size={16} />
                         </Button>
                       </div>
                     </div>
+                    <details
+                      className="panel unit-enrichment"
+                      id="unit-enrichment"
+                    >
+                      <summary>Listing details for {item.assetTag}</summary>
+                      <p className="muted">
+                        Add details from this unit’s Amazon listing with Anakin
+                        Wire. Listing information does not establish a physical
+                        serial number or purchase history.
+                      </p>
+                      <form
+                        className="toolbar"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (
+                            /^[A-Za-z0-9]{10}$/.test(asin) &&
+                            !busy &&
+                            data?.health.keyConfigured
+                          )
+                            void act(
+                              { action: 'wire', itemId: item.id, asin },
+                              'Wire enrichment',
+                            );
+                        }}
+                      >
+                        <Input
+                          aria-label="Amazon ASIN"
+                          maxLength={10}
+                          value={asin}
+                          onChange={(event) =>
+                            setAsin(event.target.value.trim())
+                          }
+                          placeholder="10-character ASIN"
+                        />
+                        <Button
+                          type="submit"
+                          disabled={
+                            !!busy ||
+                            !/^[A-Za-z0-9]{10}$/.test(asin) ||
+                            !data?.health.keyConfigured
+                          }
+                        >
+                          Enrich with Anakin Wire
+                        </Button>
+                      </form>
+                      {!data?.health.keyConfigured && (
+                        <p className="muted">
+                          Anakin must be configured before listing details can
+                          be retrieved.
+                        </p>
+                      )}
+                      {data?.audit
+                        .filter(
+                          (event) =>
+                            event.entityId === item.id &&
+                            event.type === 'wire.enrichment',
+                        )
+                        .map((event) => (
+                          <div className="notice" key={event.id}>
+                            <strong>
+                              Listing updated · {time(event.createdAt)}
+                            </strong>
+                            <dl className="enrichment-fields">
+                              {Object.entries(event.contributions ?? {}).map(
+                                ([field, value]) => (
+                                  <div key={field}>
+                                    <dt>
+                                      {field.replace(
+                                        /([a-z])([A-Z])/g,
+                                        '$1 $2',
+                                      )}
+                                    </dt>
+                                    <dd>{value}</dd>
+                                  </div>
+                                ),
+                              )}
+                            </dl>
+                          </div>
+                        ))}
+                    </details>
                     <div className="columns">
                       <div>
                         <section className="panel flush">
@@ -1787,8 +2047,11 @@ export default function Page() {
                         <p className="hash">{m.url}</p>
                         <p className="subtext">
                           Provider ID:{' '}
-                          {m.providerId || 'Local controlled fixture'} · Last
-                          checked: {time(m.lastCheckedAt)}
+                          {m.providerId ||
+                            (m.label === 'CONTROLLED_DEMO_FIXTURE'
+                              ? 'Local controlled fixture'
+                              : 'Unavailable')}{' '}
+                          · Last checked: {time(m.lastCheckedAt)}
                         </p>
                         {m.run && (
                           <p className="subtext">
@@ -1895,7 +2158,7 @@ export default function Page() {
                     <strong>
                       {data?.health.keyConfigured
                         ? 'Configured server-side'
-                        : 'Missing — set ANAKIN_API_KEY in .dev.vars'}
+                        : 'Not configured'}
                     </strong>
                     <br />
                     Public webhook origin:{' '}
@@ -1956,121 +2219,23 @@ export default function Page() {
                   </section>
                 </>
               )}
-              {screen === 'settings' && (
-                <>
-                  <div className="head">
-                    <div>
-                      <div className="eyebrow">Workspace configuration</div>
-                      <h1>Explicit boundaries.</h1>
-                      <p>
-                        Single operator. Server-side credentials. Internal
-                        inventory actions.
-                      </p>
-                    </div>
-                  </div>
-                  <section className="panel">
-                    <h2>Server configuration</h2>
-                    <p>
-                      Copy <code className="inline-code">.env.example</code> to{' '}
-                      <code className="inline-code">.dev.vars</code> and set{' '}
-                      <code className="inline-code">ANAKIN_API_KEY</code>.
-                      Restart the server. Never commit the file.
-                    </p>
-                    <p>
-                      For a deployed instance, set PUBLIC_BASE_URL and
-                      OPERATOR_TOKEN. No site is deployed by this repository
-                      automatically.
-                    </p>
-                    <label htmlFor="operator-token">
-                      Operator access token (remote instance only)
-                    </label>
-                    <div className="toolbar">
-                      <Input
-                        id="operator-token"
-                        type="password"
-                        autoComplete="off"
-                        value={tokenDraft}
-                        onChange={(e) => setTokenDraft(e.target.value)}
-                        placeholder="Used only in this tab's memory"
-                      />
-                      <Button
-                        disabled={refreshing}
-                        onClick={() => setToken(tokenDraft)}
-                      >
-                        Connect
-                      </Button>
-                    </div>
-                  </section>
-                  <section className="panel">
-                    <h2>Amazon Wire enrichment</h2>
-                    <p>
-                      Open a unit case first, then run the discovered Amazon
-                      product-details read action. Marketplace identifiers and
-                      product URLs are retained in the case audit; serial
-                      numbers are never inferred.
-                    </p>
-                    <p>
-                      Selected unit:{' '}
-                      <strong>
-                        {item?.assetTag ?? 'None — select a unit in Inventory'}
-                      </strong>
-                    </p>
-                    <div className="toolbar">
-                      <Input
-                        aria-label="Amazon ASIN"
-                        maxLength={10}
-                        value={asin}
-                        onChange={(e) => setAsin(e.target.value)}
-                        placeholder="10-character ASIN"
-                      />
-                      <Button
-                        disabled={
-                          !!busy ||
-                          !item ||
-                          !/^[A-Za-z0-9]{10}$/.test(asin) ||
-                          !data?.health.keyConfigured
-                        }
-                        onClick={() =>
-                          act(
-                            { action: 'wire', itemId: item?.id, asin },
-                            'Wire enrichment',
-                          )
-                        }
-                      >
-                        Enrich with Anakin Wire
-                      </Button>
-                    </div>
-                    {data?.audit
-                      .filter(
-                        (a) =>
-                          a.entityId === item?.id &&
-                          a.type === 'wire.enrichment',
-                      )
-                      .map((a) => (
-                        <div className="notice" key={a.id}>
-                          <strong>
-                            {a.action} · {time(a.createdAt)}
-                          </strong>
-                          <pre>{JSON.stringify(a.contributions, null, 2)}</pre>
-                        </div>
-                      ))}
-                  </section>
-                  <section className="panel">
-                    <h2>Safety boundaries</h2>
-                    <p>
-                      Only <code>affected</code> assessments automatically
-                      quarantine. Excluded and no-notice assessments describe
-                      notice scope. Missing facts, source conflicts and
-                      unsupported rules require review.
-                    </p>
-                    <p>
-                      The current domain allowlist supports CPSC and INIU.
-                      Authentication, additional manufacturers, distributed job
-                      scheduling and production multi-tenancy require further
-                      release work.
-                    </p>
-                  </section>
-                </>
+              {screen === 'settings' && data && (
+                <WorkspaceSettings
+                  health={data.health}
+                  counts={{
+                    inventory: data.inventory.length,
+                    monitors: data.monitors.length,
+                    tasks: data.tasks.filter((task) => task.status !== 'done')
+                      .length,
+                  }}
+                  sessionMode={session.mode === 'local' ? 'local' : 'operator'}
+                  lastUpdated={lastUpdated}
+                  density={density}
+                  onDensityChange={changeDensity}
+                  onSignOut={() => void signOut()}
+                  signingOut={signingOut}
+                  expiresAt={session.expiresAt}
+                />
               )}
             </>
           )}

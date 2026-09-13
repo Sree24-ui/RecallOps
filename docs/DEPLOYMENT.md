@@ -84,7 +84,7 @@ The hosted build selects the web libSQL driver, avoiding platform-specific nativ
 ## Hosted verification
 
 - Load the public catalogue without authentication; verify source links, search, details and mobile layout.
-- Confirm unauthenticated workspace reads, mutations and exports return an authorization error. Connect with the operator token and confirm the new inventory is empty.
+- Confirm unauthenticated workspace reads, mutations and exports return an authorization error. Sign in with the owner access key, refresh to verify session persistence, and confirm the inventory is empty. Sign out and verify the private API rejects access again.
 - Confirm test fixture actions remain disabled and disallowed origins are rejected.
 - Verify the hosted database enforces foreign keys, immutable audit records and atomic rollback. Remove verification artifacts and do not leave synthetic inventory in the normal workspace.
 - Check browser and server errors, then record the actual results rather than assuming a successful build proves the full application works.

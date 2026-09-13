@@ -88,7 +88,7 @@ export class Anakin {
     try {
       if (!this.key)
         throw Error(
-          'ANAKIN_API_KEY is missing. Configure it server-side in .dev.vars.',
+          'Anakin is not configured for this workspace. The owner needs to connect it before an investigation can run.',
         );
       const request = async (path: string, body?: unknown) => {
         for (let attempt = 0; attempt < 3; attempt++) {

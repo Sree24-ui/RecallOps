@@ -114,7 +114,7 @@ void test('missing key and outage record failures without fake results', async (
   const missing = new Anakin(undefined, record, async () => {
     throw Error('must not call');
   });
-  await assert.rejects(() => missing.search('x'), /missing/);
+  await assert.rejects(() => missing.search('x'), /not configured/);
   assert.equal(runs[0].requestCount, 0);
   const outage = new Anakin('secret-key', record, async () =>
     response({}, 503),

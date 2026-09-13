@@ -49,11 +49,11 @@ export class Store {
   async boot() {
     await this.run(
       'INSERT OR IGNORE INTO organizations (id,created_at,payload) VALUES (?,?,?)',
-      ['local', now(), JSON.stringify({ name: 'RecallOps local workspace' })],
+      ['local', now(), JSON.stringify({ name: 'RecallOps workspace' })],
     );
     await this.run(
       'INSERT OR IGNORE INTO users (id,created_at,payload,org_id) VALUES (?,?,?,?)',
-      ['operator', now(), JSON.stringify({ name: 'Local operator' }), 'local'],
+      ['operator', now(), JSON.stringify({ name: 'Workspace operator' }), 'local'],
     );
   }
   async saveSource(

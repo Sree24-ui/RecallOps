@@ -1,3 +1,4 @@
+import { authorized, localAccess, requireSameOrigin } from './session';
 import { ZodError } from 'zod';
 import { readableError } from './errors';
 import { testFixturesEnabled } from '../core/runtime-policy';
@@ -8,16 +9,16 @@ import { Workflow } from './workflow';
 export function context(req: Request) {
   const url = new URL(req.url),
     env = config();
-  const local =
-    !env.hosted && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-  if (
-    !local &&
-    (!env.OPERATOR_TOKEN ||
-      req.headers.get('authorization') !== `Bearer ${env.OPERATOR_TOKEN}`)
-  )
+  if (!authorized(req, env))
     throw Error(
       'Unauthorized: configure and provide the operator token for remote access',
     );
+  if (
+    !['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
+    !localAccess(req, env) &&
+    !req.headers.has('authorization')
+  )
+    requireSameOrigin(req);
   const origin = req.headers.get('origin');
   if (origin && origin !== url.origin)
     throw Error('Cross-origin request rejected');

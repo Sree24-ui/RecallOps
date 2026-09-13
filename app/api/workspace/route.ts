@@ -1,5 +1,8 @@
 import {
+  approvedSourceHosts,
   coverageDescription,
+  investigationLimits,
+  providerLimits,
   testFixturesEnabled,
 } from '@/lib/core/runtime-policy';
 import { z } from 'zod';
@@ -101,11 +104,17 @@ export async function GET(req: Request) {
       {
         demo: {
           enabled: testFixturesEnabled(env.ENABLE_TEST_FIXTURES),
-          sampleCount: demoInventory.length,
-          subject: [iniuRule.brand, ...iniuRule.models].join(' '),
-          monitoringReady: monitors.some(
-            (r) => payload(r).label === 'CONTROLLED_DEMO_FIXTURE',
-          ),
+          sampleCount: testFixturesEnabled(env.ENABLE_TEST_FIXTURES)
+            ? demoInventory.length
+            : 0,
+          subject: testFixturesEnabled(env.ENABLE_TEST_FIXTURES)
+            ? [iniuRule.brand, ...iniuRule.models].join(' ')
+            : '',
+          monitoringReady:
+            testFixturesEnabled(env.ENABLE_TEST_FIXTURES) &&
+            monitors.some(
+              (r) => payload(r).label === 'CONTROLLED_DEMO_FIXTURE',
+            ),
         },
         inventory: items.map((r) => {
           const c = cases.find((x) => x.item_id === r.id),
@@ -186,6 +195,10 @@ export async function GET(req: Request) {
         health: {
           keyConfigured: !!env.ANAKIN_API_KEY,
           webhookConfigured: !!env.PUBLIC_BASE_URL,
+          deployment: env.hosted ? 'hosted' : 'local',
+          approvedHosts: approvedSourceHosts,
+          investigationLimits,
+          providerDurationMs: providerLimits.workflowDurationMs,
           mode: 'single_operator',
           coverage: coverageDescription,
         },
@@ -238,7 +251,7 @@ export async function POST(req: Request) {
             body.itemId,
           ]),
           store.audit(body.itemId, 'case.acknowledged', {
-            operator: 'Local operator',
+            operator: 'Workspace operator',
             note: 'Acknowledgment does not release quarantine or certify safety.',
           }),
         ]);

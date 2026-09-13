@@ -1,11 +1,12 @@
 # Security and reliability
 
-Keep this version local for business-sensitive data until production authentication and job processing are hardened.
+This release supports one owner workspace. Multi-user identity, tenant isolation and durable background work remain outside its scope.
 
 ## Implemented controls
 
 - Server-side Anakin key; ignored `.dev.vars` / environment files; browser never receives it. `npm run build` removes generated local secret files from build output before packaging.
-- Non-local APIs require a server-configured bearer token. Cross-origin operator requests are rejected. The webhook has its own signature boundary.
+- Non-local APIs require an authenticated owner session or an explicit bearer credential. Sign-in issues a signed 12-hour HttpOnly, SameSite=Strict cookie with Secure on HTTPS; the raw key is never saved in browser storage. Refresh preserves the session; sign-out expires its cookie. Signing-key rotation invalidates all existing sessions.
+- Session creation/deletion and cookie-authenticated mutations require an exact Origin match. Failed sign-in attempts are bounded using atomic database counters keyed by a hashed edge-reported client identity. The webhook retains its independent signature boundary.
 - Zod input/rule validation, strict inventory fields, CSV row/byte limits, API and webhook byte limits, approved HTTPS domains, no caller-selected REST base URL, and no direct HTTP scraping fallback.
 - Provider API requests reject redirects and time out. Scraped content is untrusted and escaped in React and HTML packets. It cannot choose tool authorization, domain ranking or final status.
 - Nonempty original source excerpts, operand grounding, extraction-depth limits, typed predicates, explicit ambiguity, and deterministic assessment traces. Whitespace or paired-bold presentation differences are resolved back to original bytes; ambiguous spans fail. Combined marketplace/country operands fail instead of creating misleading exclusions. A prompt-injection indicator adds a review requirement.
@@ -22,7 +23,7 @@ Evidence substring checks do not prove an extractor captured every eligibility c
 
 The source host allowlist delegates actual page fetching to Anakin. It does not independently validate the provider's DNS resolution or internal redirect chain. Do not broaden it to arbitrary hosts without an egress/redirect review.
 
-Bearer tokens are a limited remote-operator gate, not multi-user authentication. Add real authentication, authorization, tenant isolation, session/CSRF handling and production security headers before public use with business data.
+Owner sessions are a single-user access boundary. They do not provide individual accounts, MFA, per-user permissions or tenant isolation. Sign-out clears the current browser cookie; individual session revocation is not stored server-side. Rotate the owner key to invalidate all sessions, and use a dedicated identity service before expanding to multiple operators.
 
 The background webhook handler is not a durable queue. Failed events can be retried three times, but a worker termination during processing may need operator recovery. Pause schedules before removing or changing a receiver. Live webhook behavior is not verified in this build.
 
