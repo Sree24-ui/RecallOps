@@ -1,6 +1,6 @@
 # Connect GitHub to Vercel
 
-The local workspace already has the Git remote `https://github.com/Sree24-ui/RecallOps.git` and authenticated push access as Sree24-ui. You do not need another GitHub plugin to commit and push this project. On September 13, the owner connected the existing Vercel project to `Sree24-ui/RecallOps` with production branch `main`. The project API confirms the connection. The next release push will verify a complete Git-triggered build. The steps below are retained for reconnecting if needed.
+The local workspace already has the Git remote `https://github.com/Sree24-ui/RecallOps.git` and authenticated push access as Sree24-ui. You do not need another GitHub plugin to commit and push this project. On September 13, the owner connected the existing Vercel project to `Sree24-ui/RecallOps` with production branch `main`. The project API confirms the connection. Automatic production deployment was verified with commit `3e00b0c`: Vercel reported source `git`, branch `main`, and Ready status. The steps below are retained for reconnecting if needed.
 
 ## One-time account steps
 
