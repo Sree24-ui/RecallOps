@@ -25,11 +25,11 @@ The source host allowlist delegates actual page fetching to Anakin. It does not 
 
 Owner sessions are a single-user access boundary. They do not provide individual accounts, MFA, per-user permissions or tenant isolation. Sign-out clears the current browser cookie; individual session revocation is not stored server-side. Rotate the owner key to invalidate all sessions, and use a dedicated identity service before expanding to multiple operators.
 
-The background webhook handler is not a durable queue. Failed events can be retried three times, but a worker termination during processing may need operator recovery. Pause schedules before removing or changing a receiver. Live webhook behavior is not verified in this build.
+The background webhook handler is not a durable queue. Failed events can be retried three times. Interrupted processing claims become retryable after the configured lease expires; exhausted events remain visible for manual review. This is operator-initiated recovery, not a durable scheduler. Pause schedules before removing or changing a receiver. Live webhook behavior is not verified in this build.
 
 Local rate limiting is per workspace, not a global provider-user scheduler. Multiple deployments can share provider quotas. Initial monitor creation has an uncertain-outcome duplicate risk because no provider idempotency contract was found; inspect the Anakin account before retrying a timed-out creation.
 
-See `docs/dependency-audit.json` for the measured dependency audit; development-tool advisories may differ from production dependencies. No automatic deployment is configured.
+See `docs/dependency-audit.json` for the measured dependency audit; development-tool advisories may differ from production dependencies. The Vercel GitHub connection is configured. Production builds run local type, lint and database checks before building. GitHub Actions remains a separate, inactive template.
 
 ## Reporting
 

@@ -227,7 +227,7 @@ function Navigation({
 }
 export default function Page() {
   const isMobile = useIsMobile();
-  const [screen, setScreen] = useState<Screen>('overview'),
+  const [requestedScreen, setScreen] = useState<Screen>('overview'),
     [data, setData] = useState<Data | null>(null),
     [selected, setSelected] = useState<string>(''),
     [sourceId, setSourceId] = useState(''),
@@ -247,7 +247,10 @@ export default function Page() {
     [investigationGroup, setInvestigationGroup] = useState('all'),
     [csv, setCsv] = useState(''),
     [preview, setPreview] = useState<Inventory[] | null>(null),
-    [asin, setAsin] = useState(''),
+    [asinDraft, setAsinDraft] = useState<{
+      itemId: string;
+      value: string;
+    } | null>(null),
     [monitorUrl, setMonitorUrl] = useState(''),
     [elapsed, setElapsed] = useState(0);
   const [session, setSession] = useState<WorkspaceSession | null>(null);
@@ -255,7 +258,13 @@ export default function Page() {
   const [signingIn, setSigningIn] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [density, setDensity] = useState<WorkspaceDensity>('comfortable');
+  const screen: Screen =
+    requestedScreen === 'judge' && data && !data.demo.enabled
+      ? 'overview'
+      : requestedScreen;
+  const asin = asinDraft?.itemId === selected ? asinDraft.value : '';
   const sessionGeneration = useRef(0);
+  const csvReadGeneration = useRef(0);
   const fetchGeneration = useRef(0);
   const requestsInFlight = useRef(0);
   function setSearch(value: string) {
@@ -289,7 +298,8 @@ export default function Page() {
     setCsv('');
     setPreview(null);
     setReviewedCsv('');
-    setAsin('');
+    setAsinDraft(null);
+    csvReadGeneration.current++;
     setMonitorUrl('');
     setError('');
     setIssues([]);
@@ -297,6 +307,7 @@ export default function Page() {
     setConnectionError('');
   }, []);
   const expireSession = useCallback(() => {
+    sessionGeneration.current++;
     clearWorkspace();
     setSession((current) => ({
       authenticated: false,
@@ -516,6 +527,7 @@ export default function Page() {
     window.scrollTo(0, 0);
   }
   async function act(body: Record<string, unknown>, label: string) {
+    const generation = sessionGeneration.current;
     setBusy(label);
     setElapsed(0);
     setError('');
@@ -534,6 +546,8 @@ export default function Page() {
         task?: Task;
         [key: string]: unknown;
       };
+      // Requests can finish after sign-out or a new session has begun.
+      if (generation !== sessionGeneration.current) return null;
       if (!res.ok) {
         if (res.status === 401) {
           expireSession();
@@ -557,6 +571,7 @@ export default function Page() {
       }
       // A confirmed mutation remains successful even if its follow-up read fails.
       await refresh().catch(() => {});
+      if (generation !== sessionGeneration.current) return null;
       if (result.errors?.length) {
         const unique = [...new Set(result.errors)];
         setError(
@@ -567,10 +582,11 @@ export default function Page() {
       else setMessage(`${label} completed.`);
       return result;
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Action failed');
+      if (generation === sessionGeneration.current)
+        setError(e instanceof Error ? e.message : 'Action failed');
       return null;
     } finally {
-      setBusy('');
+      if (generation === sessionGeneration.current) setBusy('');
     }
   }
   async function judge() {
@@ -630,6 +646,7 @@ export default function Page() {
   const productGroups = [...productGroupMap.values()].sort((a, b) =>
     a.label.localeCompare(b.label),
   );
+  const limits = data?.health.investigationLimits ?? investigationLimits;
   const selectedInvestigationGroup = productGroupMap.get(investigationGroup);
   const investigationCount =
     investigationGroup === 'all'
@@ -1129,12 +1146,25 @@ export default function Page() {
                       onChange={async (e) => {
                         const f = e.target.files?.[0];
                         if (!f) return;
+                        const generation = ++csvReadGeneration.current;
+                        setPreview(null);
+                        setReviewedCsv('');
+                        setCsv('');
+                        setError('');
                         if (f.size > MAX_CSV_BYTES) {
                           setError(`CSV exceeds ${MAX_CSV_BYTES / 1000} KB`);
                           return;
                         }
-                        setCsv(await f.text());
-                        setPreview(null);
+                        try {
+                          const text = await f.text();
+                          if (generation === csvReadGeneration.current)
+                            setCsv(text);
+                        } catch {
+                          if (generation === csvReadGeneration.current)
+                            setError(
+                              'Unable to read that CSV file. Choose it again or paste its contents.',
+                            );
+                        }
                       }}
                     />
                     <label htmlFor="csv-text" className="subtext">
@@ -1146,8 +1176,10 @@ export default function Page() {
                       disabled={!!busy}
                       value={csv}
                       onChange={(e) => {
+                        csvReadGeneration.current++;
                         setCsv(e.target.value);
                         setPreview(null);
+                        setReviewedCsv('');
                       }}
                       placeholder="assetTag,title,brand,model,serial,color,channel,retailer,purchaseCountry,originalPurchaseDate"
                     />
@@ -1296,19 +1328,24 @@ export default function Page() {
                       </Select>
                     </div>
                     <p className="muted">
-                      Live investigations process up to{' '}
-                      {investigationLimits.groups} product groups per run.
-                      Select a product group to investigate it separately.
-                      Unsupported source domains and incomplete investigations
-                      remain visible. Only CPSC and INIU official domains are
-                      currently approved.
+                      Live investigations process up to {limits.groups} product
+                      groups per run. Select a product group to investigate it
+                      separately. Unsupported source domains and incomplete
+                      investigations remain visible.
+                      {!!data?.health.approvedHosts?.length && (
+                        <>
+                          {' '}
+                          Approved domains:{' '}
+                          {data.health.approvedHosts.join(', ')}.
+                        </>
+                      )}
                     </p>
                     <Button
                       disabled={
                         !!busy ||
                         !investigationCount ||
                         (investigationGroup !== 'all' &&
-                          investigationCount > investigationLimits.items)
+                          investigationCount > limits.items)
                       }
                       onClick={() =>
                         act(
@@ -1326,11 +1363,10 @@ export default function Page() {
                       Run live Anakin investigation
                     </Button>
                     {investigationGroup !== 'all' &&
-                      investigationCount > investigationLimits.items && (
+                      investigationCount > limits.items && (
                         <p className="muted">
-                          Scoped investigations support up to{' '}
-                          {investigationLimits.items} units. Choose All
-                          inventory to include this group.
+                          Scoped investigations support up to {limits.items}{' '}
+                          units. Choose All inventory to include this group.
                         </p>
                       )}
                     {!data?.health.keyConfigured && (
@@ -1516,7 +1552,10 @@ export default function Page() {
                           maxLength={10}
                           value={asin}
                           onChange={(event) =>
-                            setAsin(event.target.value.trim())
+                            setAsinDraft({
+                              itemId: item.id,
+                              value: event.target.value.trim(),
+                            })
                           }
                           placeholder="10-character ASIN"
                         />

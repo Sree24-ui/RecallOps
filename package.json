@@ -22,7 +22,8 @@
     "test:live": "node --import tsx --test tests/live.test.ts",
     "catalog:refresh": "node scripts/refresh-catalog.mjs",
     "build:vercel": "NITRO_PRESET=vercel npm run build",
-    "test:libsql": "TEST_DATABASE_DRIVER=libsql npm test"
+    "test:libsql": "TEST_DATABASE_DRIVER=libsql npm test",
+    "check": "npm run typecheck && npm run lint && npm test && npm run test:libsql"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

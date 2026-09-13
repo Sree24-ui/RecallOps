@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "regions": ["bom1"],
-  "buildCommand": "npm run build:vercel",
+  "regions": [
+    "bom1"
+  ],
+  "buildCommand": "npm run check && npm run build:vercel",
   "outputDirectory": ".vercel/output",
   "installCommand": "npm ci"
 }

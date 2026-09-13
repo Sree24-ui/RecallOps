@@ -72,9 +72,10 @@ node --env-file=.env.production.local scripts/migrate.mjs
 
 The generated environment file is ignored and private. Confirm that it points to the new RecallOps Turso database before applying migrations. Do not include it in source archives, screenshots, build uploads or submission packs.
 
-Build and deploy from the linked checkout:
+Run release checks, then build and deploy from the linked checkout:
 
 ```sh
+npm run check
 npm run build:vercel
 vercel deploy --prebuilt --prod
 ```
@@ -91,10 +92,10 @@ The hosted build selects the web libSQL driver, avoiding platform-specific nativ
 
 Provider operations have a 240-second request budget, leaving time inside the 300-second function limit for persistence. Interrupted and unstarted scan groups retain their prior assessments and are reported as deferred. A stalled database or external provider can still cause a request to fail; this is not a durable job queue.
 
-`OPERATOR_TOKEN` protects a single-operator prototype. Multi-tenant isolation, durable background investigation queues and coordinated rate limits are further work before wider business use. Public catalogue traffic does not call Anakin or read private inventory. Actual investigations and manual monitor checks can consume Anakin credits. Monitors are created paused; scheduled activation and end-to-end signed external webhook delivery remain unverified.
+`OPERATOR_TOKEN` protects a single-operator prototype. Multi-tenant isolation, durable background investigation queues and cross-project provider-job coordination are further work before wider business use. Public catalogue traffic does not call Anakin or read private inventory. Actual investigations and manual monitor checks can consume Anakin credits. Monitors are created paused; scheduled activation and end-to-end signed external webhook delivery remain unverified.
 
 ## GitHub connection and checks
 
-The repository is public at https://github.com/Sree24-ui/RecallOps. Vercel's optional automatic deployment connection requires the account owner's GitHub Login Connection; direct CLI deployments do not depend on it. Verify a connected commit's deployment before claiming automatic deploys are active.
+Follow the step-by-step [GitHub → Vercel connection guide](AUTO-DEPLOY.md). The repository is public at https://github.com/Sree24-ui/RecallOps. The owner has connected the existing Vercel project to this repository with production branch main. Direct CLI deployments remain available. Verify a connected commit's deployment before claiming automatic deploys are active.
 
 `docs/github-checks.yml` is a workflow template, not an active GitHub Actions workflow. Local checks were executed separately. The current GitHub CLI sign-in lacks the `workflow` scope needed to add an active workflow. The owner can grant it with `gh auth refresh -h github.com -s workflow`, then move the template to `.github/workflows/checks.yml`, review its commands for the current Node/Turso build, commit and push. This requires the owner's interactive GitHub authorization. Verify the first Actions run before claiming CI passed.

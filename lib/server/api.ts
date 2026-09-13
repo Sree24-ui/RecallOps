@@ -35,11 +35,10 @@ export function context(req: Request) {
 }
 export async function limited(store: Store, key: string, max = 10) {
   const window = Math.floor(Date.now() / 60000);
-  await store.run(
-    'INSERT INTO rate_limits (id,window,count) VALUES (?,?,1) ON CONFLICT(id) DO UPDATE SET count=CASE WHEN window=? THEN count+1 ELSE 1 END,window=?',
+  const row = await store.first(
+    'INSERT INTO rate_limits (id,window,count) VALUES (?,?,1) ON CONFLICT(id) DO UPDATE SET count=CASE WHEN window=? THEN count+1 ELSE 1 END,window=? RETURNING count',
     [key, window, window, window],
   );
-  const row = await store.first('SELECT * FROM rate_limits WHERE id=?', [key]);
   if (Number(row?.count) > max)
     throw Error('Rate limit reached. Wait one minute before retrying.');
 }

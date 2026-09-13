@@ -8,7 +8,7 @@ RecallOps helps electronics teams turn official recall evidence into decisions a
 
 ## What you can do
 
-- Browse and search a dated selection of real CPSC electronics recall notices, expand their published descriptions and remedies, and open the original notice.
+- Browse and search a dated selection of real CPSC electronics recall notices, expand API product descriptions and open the original notice for current remedy instructions, and open the original notice.
 - Open the protected operator workspace, download a blank CSV template, and import inventory you actually hold.
 - Investigate selected product groups through Anakin Search and URL Scraper. Preserve source text, retrieval times, hashes and extracted criteria.
 - Compare unit facts with evidence using a deterministic TypeScript matcher. Review affected, excluded, unresolved or no-notice results with an explanation.
@@ -34,7 +34,7 @@ Refresh selected notices using documented CPSC recall numbers without hyphens:
 npm run catalog:refresh -- 26647 26135 25338 25248 25061
 ```
 
-The refresh rejects ambiguous records and non-notice URLs, then writes the actual returned fields. It creates no physical inventory. Update and rebuild the site to publish a newer snapshot.
+The refresh rejects incomplete or ambiguous records and non-notice URLs. Remedy instructions are not copied from the API: a verified upstream mismatch linked INIU power banks to unrelated planer instructions. Use the original CPSC notice for the current remedy; the catalogue is not used as eligibility evidence by the investigator. It creates no physical inventory. Update and rebuild the site to publish a newer snapshot.
 
 The normal workspace starts empty. The prior local demonstration units have been archived with audit history preserved. Synthetic cases remain only as explicit regression-test fixtures, disabled in normal and hosted execution. The normal CSV download contains headers only. No fake serial, customer, purchase or inventory count is inferred from public data.
 
@@ -72,10 +72,6 @@ PORT=3001 npm start
 ```
 
 Stop the development server before starting another server on the same port. The local production server uses the same `.dev.vars` configuration and database.
-
-## Workspace settings
-
-Settings reports actual workspace counts, Anakin configuration, session expiry, approved source domains and investigation limits. Choose Comfortable or Compact table spacing; only that nonsecret preference is saved in browser storage. Amazon listing enrichment is available inside the selected unit’s case. Signed-out visitors see an access screen rather than a workspace failure.
 
 ## How it runs
 
@@ -125,6 +121,8 @@ Keep the E2E database separate from normal inventory. Tests include raw source v
 ## Deployment and submission
 
 Vercel is the selected deployment provider. Nitro emits the Vercel Build Output API bundle under `.vercel/output`; the operator backend requires a persistent Turso database. Server-only secrets are configured in Vercel, never committed. The postbuild check removes environment files from generated output. Only schema migrations are applied to the hosted database; no local database or test inventory is uploaded. See [deployment instructions](docs/DEPLOYMENT.md) for setup and verification. The older Sites configuration is historical and is not used by the Vercel build.
+
+See [GitHub automatic deployment setup](docs/AUTO-DEPLOY.md). This workspace already pushes to GitHub; the Vercel project is now connected to this repository and its main branch.
 
 See [submission answers](SUBMISSION.md) and [demo walkthrough](DEMO.md). The separate submission ZIP includes the captioned WebM video, screenshots, copy-ready answers and a clean source archive. Video upload, social posting, the GitHub star screenshot and the final form submission are separate user actions.
 

@@ -1,9 +1,10 @@
 # Submission readiness
 
-The copy-ready field text is in [SUBMISSION.md](../SUBMISSION.md), with [social drafts](SOCIAL-DRAFTS.md) and an optional [demo narration](DEMO-VIDEO-SCRIPT.md). The prepared local video and screenshots are delivered separately in the submission pack.
+- Public repository: https://github.com/Sree24-ui/RecallOps. Sole contributor: Sree24-ui.
+- Deployed Vercel website: https://recallops-nine.vercel.app. The official catalogue is public; the owner workspace requires private sign-in.
+- Prepared materials: [field answers](../SUBMISSION.md), [demo walkthrough](../DEMO.md), [social drafts](SOCIAL-DRAFTS.md), actual-app video, screenshots and a clean source archive in the separate submission pack.
+- Before submitting: upload the video, test judge-accessible playback, publish the reviewed social post with the Anakin tag, provide the genuine GitHub-star screenshot, review personal/team fields, then submit the form.
 
-Before submitting: make the repository accessible to judges, deploy and verify the demo URL, upload and share the recorded video, publish a reviewed social post with the Anakin tag, and attach a genuine screenshot of the requested GitHub star. None of these public actions or the form submission has been performed.
+Video upload, social posting, starring and form submission have not been performed. Project screenshots do not substitute for the required star screenshot. Do not include the private owner-access file. The local preview URL and local video path are not public submission links.
 
-Verified source URL: https://github.com/Sree24-ui/RecallOps (currently private).
-
-The local preview is not a deployed link. The form requires the URL of an actual published social post and a hosted video, not draft text or local files.
+[Automatic deployment connection](AUTO-DEPLOY.md) is independent of submission readiness; the verified CLI deployment is already public.

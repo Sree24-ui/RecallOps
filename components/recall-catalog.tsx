@@ -12,18 +12,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import catalog from '@/data/official-recalls.json';
+import { filterRecalls, recallNumber } from '@/lib/ui/catalog';
 
 export function RecallCatalog() {
   const [query, setQuery] = useState('');
-  const terms = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-  const records = catalog.records.filter((r) =>
-    terms.every((term) =>
-      [r.number, r.title, r.description, ...r.products]
-        .join(' ')
-        .toLocaleLowerCase()
-        .includes(term),
-    ),
-  );
+  const records = filterRecalls(catalog.records, query);
   const verified = catalog.records.map((r) => r.retrievedAt).sort()[0];
   return (
     <div className="catalog-shell">
@@ -115,9 +108,7 @@ export function RecallCatalog() {
             {records.map((r) => (
               <article className="catalog-card" key={r.id}>
                 <div className="catalog-card-meta">
-                  <span>
-                    CPSC {r.number.slice(0, 2)}-{r.number.slice(2)}
-                  </span>
+                  <span>CPSC {recallNumber(r.number)}</span>
                   <time dateTime={r.date}>
                     {new Date(r.date + 'T00:00:00Z').toLocaleDateString(
                       'en-US',
@@ -138,9 +129,14 @@ export function RecallCatalog() {
                     <h4>Official description</h4>
                     <p>{r.description}</p>
                     <h4>Remedy</h4>
-                    {r.remedies.map((remedy, i) => (
-                      <p key={i}>{remedy}</p>
-                    ))}
+                    <p>
+                      Read the current remedy instructions in the original CPSC
+                      notice. The API snapshot can omit or mismatch this
+                      information.
+                    </p>
+                    <a href={r.url} target="_blank" rel="noreferrer">
+                      View remedy on CPSC <ArrowUpRight size={15} />
+                    </a>
                     <p className="muted">{r.contact}</p>
                   </div>
                 </details>

@@ -25,7 +25,7 @@ import {
   publicProviderData,
   sha256,
 } from '../../../lib/server/security';
-import { processEvent } from '../../../lib/server/events';
+import { processEvent, retryableEvents } from '../../../lib/server/events';
 import { demoInventory, iniuRule } from '../../../fixtures/demo';
 const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('judge') }),
@@ -399,9 +399,7 @@ export async function POST(req: Request) {
         return Response.json(await workflow.refreshMonitor(mon));
       }
       case 'retry_events': {
-        const pending = await store.all(
-          "SELECT * FROM monitor_events WHERE status IN ('pending','failed') LIMIT 5",
-        );
+        const pending = await retryableEvents(store);
         for (const event of pending) {
           try {
             await processEvent(store, workflow, event.id);
@@ -417,13 +415,19 @@ export async function POST(req: Request) {
         const succeeded = after.filter(
           (event) => event?.status === 'processed',
         ).length;
+        const unresolved = await store.first(
+          "SELECT COUNT(*) AS count FROM monitor_events WHERE status IN ('pending','failed','processing')",
+        );
+        const remaining = Number(unresolved?.count ?? 0);
         return Response.json({
           attempted: pending.length,
           succeeded,
-          remaining: pending.length - succeeded,
+          remaining,
           message: pending.length
-            ? `${succeeded} of ${pending.length} events processed; ${pending.length - succeeded} remain unresolved.`
-            : 'No pending or failed events to retry.',
+            ? `${succeeded} of ${pending.length} events processed; ${remaining} remain unresolved.`
+            : remaining
+              ? `No events are ready for retry. ${remaining} unresolved events are still processing or have reached the retry limit; inspect them manually.`
+              : 'No pending or failed events to retry.',
         });
       }
     }

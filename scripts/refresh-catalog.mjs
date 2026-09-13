@@ -1,4 +1,5 @@
 import { writeFile, mkdir } from 'node:fs/promises';
+import { catalogRecord } from './catalog-data.mjs';
 // Documented RecallNumber filter keeps each public API request bounded.
 const numbers = process.argv.slice(2);
 if (
@@ -19,38 +20,9 @@ for (const number of new Set(numbers)) {
   const text = await response.text();
   if (text.length > 1000000) throw Error('Unexpectedly large CPSC response');
   const rows = JSON.parse(text);
-  if (
-    !Array.isArray(rows) ||
-    rows.length !== 1 ||
-    rows[0].RecallNumber !== number
-  )
-    throw Error(`Expected exactly one official record for ${number}`);
-  const r = rows[0],
-    url = new URL(r.URL);
-  if (
-    url.protocol !== 'https:' ||
-    url.hostname !== 'www.cpsc.gov' ||
-    !/^\/Recalls\/\d{4}\//.test(url.pathname)
-  )
-    throw Error('CPSC response did not contain a specific official notice URL');
-  const names = (list) =>
-    Array.isArray(list)
-      ? list.map((v) => v.Name).filter((v) => typeof v === 'string' && v.trim())
-      : [];
-  records.push({
-    id: r.RecallID,
-    number: r.RecallNumber,
-    title: r.Title,
-    date: r.RecallDate.slice(0, 10),
-    url: url.href,
-    products: names(r.Products),
-    description: r.Description,
-    hazards: names(r.Hazards),
-    remedies: names(r.Remedies),
-    contact: r.ConsumerContact,
-    apiUrl: source.href,
-    retrievedAt: new Date().toISOString(),
-  });
+  records.push(
+    catalogRecord(rows, number, source.href, new Date().toISOString()),
+  );
 }
 records.sort((a, b) => b.date.localeCompare(a.date));
 const catalog = {

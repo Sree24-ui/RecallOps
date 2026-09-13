@@ -4,7 +4,16 @@ These are test instructions only. They are disabled in the normal and hosted wor
 
 # Judge demonstration
 
-Run the README setup, open the printed local URL and click **Run RecallOps Judge Demo**. This is a controlled offline replay, visibly labeled on every source and assessment. It exercises the real database and deterministic engine.
+Create an isolated database and start an explicit local test server:
+
+```sh
+mkdir -p .data
+TURSO_DATABASE_URL=file:.data/judge-isolated.sqlite npm run db:migrate
+npm run build
+TURSO_DATABASE_URL=file:.data/judge-isolated.sqlite ENABLE_TEST_FIXTURES=true PORT=3002 npm start
+```
+
+Open http://localhost:3002/workspace, select Judge Mode and click **Run RecallOps Judge Demo**. The normal README server does not enable this button. This is a controlled offline replay, visibly labeled on every source and assessment. It exercises the real database and deterministic engine.
 
 | Unit | Expected outcome | Evidence-based reason |
 | --- | --- | --- |
@@ -26,10 +35,6 @@ The official recall URL uses `/2026/`, but the notice date is December 5, 2025 a
 
 No real customer contact, claim, disposal or payment occurs. The sample customer address uses `.invalid`. Check `docs/RELEASE-VERIFICATION.md` for measured browser-demo runtime and current live verification gaps.
 
-## Live verification alongside the controlled demo
+## Historical live verification — September 10–11, 2026
 
-With the local key configured, open Investigation and select **INIU / BI-B41 (4 units)**, then run the live investigation. Inspect the stored LIVE_ANAKIN source label and actual provider IDs. Extraction can vary between calls; rejected or conflicting criteria must remain review cases. Running Judge Mode again deliberately replaces the latest sample assessments with labeled controlled results.
-
-The separate **WIRE-DEMO-001** record demonstrates actual Amazon Wire enrichment for a related INIU 20,000mAh listing. It is not identified as BI-B41: the provider returned no physical model or serial. The retired BI-B41 listing returned an observable 404.
-
-The live CPSC monitor remains paused. Its manual request is queued; the independently completed scrape/reassessment is labeled separately. The public signed-webhook path still needs a configured HTTPS receiver.
+Historical Search/Scraper, Wire and paused-monitor checks used labelled sample physical units. Those units are archived outside the normal database. Their source IDs and exact observations remain in [the historical verification report](RELEASE-VERIFICATION.md). They are not current real inventory or proof that scheduled external delivery works. The normal demo is documented in [DEMO.md](../DEMO.md).
